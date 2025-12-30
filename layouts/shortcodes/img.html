@@ -1,0 +1,17 @@
+<figure>
+    <img src="{{ .Get "src" }}" alt="{{ .Get "alt" }}"
+        {{ if .Get "width" }}width="{{ .Get "width" }}"{{ end }}
+        {{ if .Get "height" }}height="{{ .Get "height" }}"{{ end }}
+        {{ if .Get "sizes" }}sizes="{{ .Get "sizes" }}"{{ end }}
+        {{ if .Get "srcset" }}srcset="{{ .Get "srcset" }}"{{ end }} />
+    {{ if .Get "attrlink"}}
+    <figcaption class="attribution">
+        Source: <a href="{{ .Get "attrlink" }}">
+            {{ if .Get "attr" }}{{ .Get "attr" }}{{ else }}{{ .Get "attrlink" }}{{ end }}
+        </a>
+    </figcaption>
+    {{ end }}
+    {{ if .Get "caption"}}
+    <figcaption class="caption">{{ .Get "caption" }}</figcaption>
+    {{ end }}
+</figure>

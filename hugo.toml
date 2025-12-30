@@ -1,0 +1,14 @@
+baseURL = 'https://pboyd.net/'
+languageCode = 'en-us'
+title = 'pboyd.net'
+theme = 'std'
+
+[markup]
+  [markup.highlight]
+    style = 'github-dark'
+
+[menus]
+    [[menus.main]]
+        name = 'Home'
+        pageRef = '/'
+        weight = 10

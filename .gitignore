@@ -1,0 +1,7 @@
+# Hugo generated files
+public/
+resources/_gen/
+resources/_tmp/
+
+# Hugo cache
+.hugo_build.lock

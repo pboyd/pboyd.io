@@ -1,0 +1,27 @@
+{{- $image := .Page.Resources.GetMatch ( .Get "src" ) -}}
+{{- if $image -}}
+<figure{{ if .Get "float" }} class="float-{{ .Get "float" }}"{{ end }}>
+    {{ if .Get "link" }}
+    <a href="{{ .Get "link" }}">
+    {{ end }}
+    <img src="{{ $image.Permalink }}" alt="{{ .Get "alt" }}"
+         sizes="(max-width: 240px) 100px, (max-width: 340px) 200px, (max-width: 440px) 300px, (max-width: {{ add $image.Width 40 }}px) 400px, {{ $image.Width }}px"
+         srcset="
+            {{- $image.Permalink }} {{ $image.Width }}w,
+            {{- $image400 := $image.Resize "400x" }} {{ $image400.Permalink }} {{ $image400.Width }}w,
+            {{- $image300 := $image.Resize "300x" }} {{ $image300.Permalink }} {{ $image300.Width }}w,
+            {{- $image200 := $image.Resize "200x" }} {{ $image200.Permalink }} {{ $image200.Width }}w,
+            {{- $image100 := $image.Resize "100x" }} {{ $image100.Permalink }} {{ $image100.Width }}w" />
+    {{ if .Get "link" }}</a>{{ end }}
+    {{ if .Get "attrlink"}}
+    <figcaption class="attribution">
+        {{ if .Get "attrintro" }}{{ .Get "attrintro" }}{{else}}Source:{{end}} <a href="{{ .Get "attrlink" }}">
+            {{ if .Get "attr" }}{{ .Get "attr" }}{{ else }}{{ .Get "attrlink" }}{{ end }}
+        </a>
+    </figcaption>
+    {{ end }}
+    {{ if .Get "caption"}}
+    <figcaption class="caption">{{ .Get "caption" | markdownify }}</figcaption>
+    {{ end }}
+</figure>
+{{- end -}}

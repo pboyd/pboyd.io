@@ -1,0 +1,302 @@
+html {
+  background-color: #faf4ed;
+}
+
+body {
+  color: #575279;
+}
+
+header h1 a {
+  color: #575279;
+}
+
+a {
+  color: #286983;
+}
+
+main time {
+  color: #666;
+}
+
+pre {
+  background: #b8cece;
+}
+
+code {
+  background: #b8cece;
+}
+
+@media (prefers-color-scheme: dark) {
+    html {
+      background-color: #192330;
+    }
+
+    body {
+      color: #cdcecf;
+    }
+
+    header h1 a {
+      color: #cdcecf;
+    }
+
+    a {
+      color: #719cd6;
+    }
+
+    main time {
+      color: #bebebe;
+    }
+
+    pre {
+      background: #3c5372;
+    }
+
+    code {
+      background: #3c5372;
+    }
+}
+
+body {
+  margin: 0 auto;
+  padding: 0;
+  max-width: 1000px;
+
+  font-size: 20px;
+  font-family: "Noto Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  font-variation-settings:
+    "wdth" 100;
+
+  padding: 0;
+}
+
+main {
+  padding: 20px;
+}
+
+h1 {
+  margin: 2px 0;
+}
+
+main h1 {
+  font-family: "Noto Sans", sans-serif;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 1;
+  text-align: center;
+  padding: 10px 0;
+}
+
+h2.subtitle {
+  font-size: large;
+  font-style: italic;
+  font-weight: 400;
+  text-align: center;
+  margin-top: 0;
+}
+
+pre {
+  padding: 1em;
+  font-family: "Roboto Mono", monospace;
+  font-size: 0.8em;
+  overflow: auto;
+}
+
+code {
+  font-family: "Roboto Mono", monospace;
+}
+
+pre code {
+  border: none;
+}
+
+header {
+  border-bottom: 1px solid #ddd;
+  padding: 10px;
+}
+
+header h1 {
+  font-family: "Orbitron", monospace;
+  font-size: large;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+}
+
+header h1 a {
+  text-decoration: none;
+}
+
+h1.title {
+    display: inline;
+}
+
+main {
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+}
+
+main p {
+  margin: 40px 0;
+  font-family: "Noto Serif", serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  font-variation-settings:
+    "wdth" 100;
+}
+
+main time {
+  font-size: smaller;
+  margin-bottom: 10px;
+  display: block;
+  text-align: center;
+}
+
+main .footnotes ol {
+    font-size: smaller;
+}
+
+main .footnotes p {
+    margin: 0;
+    font-size: smaller;
+}
+
+footer {
+  font-size: small;
+  border-top: 1px solid #ddd;
+  padding: 10px;
+}
+
+ul#tags {
+  display: inline;
+  margin: 0;
+  padding: 0;
+}
+
+ul#tags li {
+  list-style: none;
+  display: inline;
+}
+
+ul#tags li a {
+  text-decoration: none;
+  color: #aaa;
+}
+
+blockquote {
+  border-left: 5px solid #e0e0e0;
+  margin-left: 20px;
+  padding-left: 10px;
+}
+
+hr {
+  margin: 15px 0;
+}
+
+table {
+  border-collapse: collapse;
+  margin: 20px 0;
+}
+
+td,
+th {
+  border: 1px solid #aaa;
+  padding: 4px;
+  margin: 0;
+}
+
+th {
+  text-align: center;
+}
+
+nav ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+nav ul li {
+  display: inline;
+  padding-right: 10px;
+}
+
+figure {
+    margin: auto;
+    width: fit-content;
+}
+
+figure figcaption.caption {
+    font-size: smaller;
+}
+
+figure figcaption.attribution {
+    font-size: small;
+    text-align: right;
+    font-style: italic;
+}
+
+div.end-boxes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-auto-flow: dense;
+}
+
+div.box {
+    margin: 5px;
+    border: 1px solid #777;
+    padding: 3px;
+    background-color: #efefef;
+    display: flex;
+    flex-direction: column;
+}
+
+div.box .title {
+    font-size: 20px;
+    font-weight: bold;
+    margin: 0;
+}
+
+div.end-boxes ul {
+    margin: 0;
+}
+
+div.end-boxes ul li {
+    margin: 10px 0;
+    padding: 0;
+}
+
+div.post-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+div.post-list article.summary {
+    margin: 10px;
+    padding: 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #eeedec;
+    overflow: hidden;
+}
+
+div.post-list article.summary figure {
+    background-color: #e0e7ef;
+    width: 100%;
+    text-align: center;
+}
+
+div.post-list article.summary a.title {
+    display: block;
+    margin: 0;
+    padding: 10px;
+    font-size: 20px;
+    text-decoration: none;
+    background-color: #e0e7ef;
+    border-bottom: 1px solid #ddd;
+}
+
+div.post-list article.summary p {
+    margin: 10px;
+}
