@@ -1,6 +1,6 @@
-baseURL = 'https://pboyd.net/'
+baseURL = 'https://pboyd.io/'
 languageCode = 'en-us'
-title = 'pboyd.net'
+title = 'pboyd.io'
 theme = 'std'
 
 [markup]
@@ -11,4 +11,8 @@ theme = 'std'
     [[menus.main]]
         name = 'Home'
         pageRef = '/'
+        weight = 10
+    [[menus.main]]
+        name = 'Posts'
+        pageRef = '/posts'
         weight = 10

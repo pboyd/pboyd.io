@@ -26,6 +26,7 @@ code {
   background: #b8cece;
 }
 
+/*
 @media (prefers-color-scheme: dark) {
     html {
       background-color: #192330;
@@ -55,6 +56,7 @@ code {
       background: #3c5372;
     }
 }
+*/
 
 body {
   margin: 0 auto;
@@ -118,7 +120,7 @@ header {
 }
 
 header h1 {
-  font-family: "Orbitron", monospace;
+  font-family: "Roboto Mono", monospace;
   font-size: large;
   font-weight: 700;
   letter-spacing: 0.3em;
@@ -147,7 +149,7 @@ main p {
     "wdth" 100;
 }
 
-main time {
+article time {
   font-size: smaller;
   margin-bottom: 10px;
   display: block;
@@ -215,6 +217,9 @@ nav ul {
   margin: 0;
   padding: 0;
   list-style: none;
+
+  font-size: small;
+  padding: 10px;
 }
 
 nav ul li {
@@ -267,36 +272,12 @@ div.end-boxes ul li {
     padding: 0;
 }
 
-div.post-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+ul.post-list time {
+    font-family: "Roboto Mono", monospace;
+    font-size: 0.8em;
+    font-style: italic;
 }
 
-div.post-list article.summary {
-    margin: 10px;
-    padding: 0;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    background-color: #eeedec;
-    overflow: hidden;
-}
-
-div.post-list article.summary figure {
-    background-color: #e0e7ef;
-    width: 100%;
-    text-align: center;
-}
-
-div.post-list article.summary a.title {
-    display: block;
-    margin: 0;
-    padding: 10px;
-    font-size: 20px;
-    text-decoration: none;
-    background-color: #e0e7ef;
-    border-bottom: 1px solid #ddd;
-}
-
-div.post-list article.summary p {
-    margin: 10px;
+ul.post-list time::after {
+    content: " - ";
 }

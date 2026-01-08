@@ -1,4 +1,5 @@
 {{ define "main" }}
+  <article>
   <h1>{{ .Title }}</h1>
   <h2 class="subtitle">{{ .Params.subtitle }}</h2>
 
@@ -8,4 +9,5 @@
 
   {{ .Content }}
   {{ partial "terms.html" (dict "taxonomy" "tags" "page" .) }}
+  </article>
 {{ end }}
