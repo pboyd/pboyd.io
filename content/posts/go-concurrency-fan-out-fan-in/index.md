@@ -23,7 +23,7 @@ Yes, it's overgrown. I'm sure an upstanding citizen concerned with suburban resp
     src="flowerbed-mosaic-small.jpg"
     link="flowerbed-mosaic.jpg"
     alt="A mosaic of my overgrown flower bed."
-    caption="Tile images from [Lorem Picsum](https://picsum.photos/images).">}}
+    caption="Zoom in for the full effect. Tile images are from [Lorem Picsum](https://picsum.photos/images).">}}
 
 That image contains 14,490 tiles made from 894 source images, which takes a lot of processing. Fortunately, much of it can be done concurrently. In fact, the core of this program is two incredibly standard processing pipelines, which are so ordinary that I'm using them as an excuse to talk about the work-horse of Go concurrency patterns: fan-out, fan-in. It's very versatile, you can use for almost any concurrent processing.
 
