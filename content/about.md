@@ -2,23 +2,19 @@
 title: About
 draft: false
 lastmod: 2026-01-10
-layout: page
+layout: about
 ---
-This blog is written by me, Paul Boyd, just your average software developer.
+I'm Paul Boyd, a mostly self-taught software developer who currently works at Red Hat.
 
-You can find me on [GitHub](https://github.com/pboyd/). I avoid social media, but I have a limited presence on [LinkedIn](https://www.linkedin.com/in/paul-boyd-6307b139/).
+The best way to contact me is by [email](mailto:paul@pboyd.io). I'm [pboyd](https://github.com/pboyd/) on GitHub, and I occasionally use [LinkedIn](https://www.linkedin.com/in/paul-boyd-6307b139/).
 
-The best way to reach me is [email](mailto:paul@pboyd.io).
-
-## Disclosures
-
-Everything on this site is my own opinion, and does not necessarily reflect the views of my employers (past or present).
+_Opinions published here are mine, not those of my current or former employers._
 
 ## AI usage
 
-The text of the articles on this site are not AI generated and never will be. However, AI will be used for the following:
+I write all the text and always will. However, I do use AI in the following ways:
 
-- **Proofreading** &emdash; I used Grammarly in the past to find grammatical errors and find simpler ways to write. Now I use Claude.
-- **Generating code** &emdash; I may use AI to generate the code examples or in the production of the projects I write about.
-- **Generating artwork** &emdash; I'm a terrible artist. If it's not a diagram or a photograph, it's probably AI generated. It will be stated in the image caption.
-- **Research** &emdash; Generative AI has become a tool that I use to learn new things.
+- **Proofreading** &mdash; On older articles, I used Grammarly to find grammatical errors and simplify the text. I currently use Claude Code in the same way ([elements-of-style](https://github.com/obra/the-elements-of-style/)!).
+- **Generating code** &mdash; I sometimes use AI to generate code examples or to build projects I write about.
+- **Generating artwork** &mdash; I'm a terrible artist. If it's not a diagram, a photograph, or badly cobbled together clip-art, it's AI-generated. I'll note this in the image caption.
+- **Other** &mdash; Researching, brainstorming, and generating the non-content parts of the site (templates, deployment scripts, etc.)
