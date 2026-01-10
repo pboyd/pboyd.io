@@ -89,6 +89,10 @@ main h1 {
   padding: 10px 0;
 }
 
+main article.about h1 {
+    text-align: left;
+}
+
 h2.subtitle {
   font-size: large;
   font-style: italic;
@@ -277,5 +281,5 @@ ul.post-list time {
 }
 
 ul.post-list time::after {
-    content: " - ";
+    content: " — ";
 }
