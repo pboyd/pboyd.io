@@ -1,0 +1,43 @@
+name: PR Build Check
+
+on:
+  pull_request:
+    branches:
+      - main
+
+env:
+  HUGO_VERSION: 0.121.1
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v2
+        with:
+          hugo-version: ${{ env.HUGO_VERSION }}
+          extended: true
+
+      - name: Build site
+        run: hugo --minify --baseURL https://pboyd.io/
+
+      - name: Check for build artifacts
+        run: |
+          if [ ! -d "public" ]; then
+            echo "Error: public directory not created"
+            exit 1
+          fi
+          if [ ! -f "public/index.html" ]; then
+            echo "Error: index.html not found in public directory"
+            exit 1
+          fi
+          echo "Build successful - public directory contains $(find public -type f | wc -l) files"
