@@ -296,3 +296,65 @@ resource "aws_route53_record" "www" {
     evaluate_target_health = false
   }
 }
+
+# MX Records for ProtonMail
+resource "aws_route53_record" "mx" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = var.domain_name
+  type    = "MX"
+  ttl     = 3600
+
+  records = [
+    "10 mail.protonmail.ch",
+    "20 mailsec.protonmail.ch",
+  ]
+}
+
+# DKIM CNAME Records for ProtonMail
+resource "aws_route53_record" "dkim_protonmail" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = "protonmail._domainkey.${var.domain_name}"
+  type    = "CNAME"
+  ttl     = 3600
+  records = ["protonmail.domainkey.dxxbmllqo53yoiafr7efoptflfoovycdf5bcwopjcdafnn5pqctnq.domains.proton.ch"]
+}
+
+resource "aws_route53_record" "dkim_protonmail2" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = "protonmail2._domainkey.${var.domain_name}"
+  type    = "CNAME"
+  ttl     = 3600
+  records = ["protonmail2.domainkey.dxxbmllqo53yoiafr7efoptflfoovycdf5bcwopjcdafnn5pqctnq.domains.proton.ch"]
+}
+
+resource "aws_route53_record" "dkim_protonmail3" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = "protonmail3._domainkey.${var.domain_name}"
+  type    = "CNAME"
+  ttl     = 3600
+  records = ["protonmail3.domainkey.dxxbmllqo53yoiafr7efoptflfoovycdf5bcwopjcdafnn5pqctnq.domains.proton.ch"]
+}
+
+# TXT Records (combined for apex domain)
+resource "aws_route53_record" "txt" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = var.domain_name
+  type    = "TXT"
+  ttl     = 3600
+
+  records = [
+    "v=spf1 include:_spf.protonmail.ch include:simplelogin.co ~all",
+    "protonmail-verification=dcf68795367174079b0606eea3e28d6b41031f41",
+    "sl-verification=utodujkdumupufjnupjdtawadriryy",
+    "google-site-verification=qUnOJYnNzKIUABU5-NLYVMGFv2526X4FqwTv7sB28CY",
+  ]
+}
+
+# DMARC Record
+resource "aws_route53_record" "dmarc" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = "_dmarc.${var.domain_name}"
+  type    = "TXT"
+  ttl     = 3600
+  records = ["v=DMARC1; p=none"]
+}

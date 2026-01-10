@@ -30,7 +30,7 @@ output "certificate_arn" {
 
 output "deployment_commands" {
   description = "Commands to deploy site updates"
-  value = <<-EOT
+  value       = <<-EOT
     # Build the site
     hugo
 
