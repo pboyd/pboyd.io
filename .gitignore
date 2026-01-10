@@ -5,3 +5,7 @@ resources/_tmp/
 
 # Hugo cache
 .hugo_build.lock
+
+# Claude Code and internal documentation
+.claude/
+docs/
