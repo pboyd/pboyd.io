@@ -41,3 +41,15 @@ output "deployment_commands" {
     aws cloudfront create-invalidation --distribution-id ${aws_cloudfront_distribution.main.id} --paths "/*"
   EOT
 }
+
+output "github_actions_access_key_id" {
+  description = "Access key ID for GitHub Actions (add to GitHub secrets as AWS_ACCESS_KEY_ID)"
+  value       = aws_iam_access_key.github_actions.id
+  sensitive   = true
+}
+
+output "github_actions_secret_access_key" {
+  description = "Secret access key for GitHub Actions (add to GitHub secrets as AWS_SECRET_ACCESS_KEY)"
+  value       = aws_iam_access_key.github_actions.secret
+  sensitive   = true
+}
