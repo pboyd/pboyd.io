@@ -15,4 +15,8 @@ theme = 'std'
     [[menus.main]]
         name = 'Posts'
         pageRef = '/posts'
-        weight = 10
+        weight = 20
+    [[menus.main]]
+        name = 'About'
+        pageRef = '/about'
+        weight = 30
