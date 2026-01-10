@@ -115,7 +115,9 @@ resource "aws_cloudfront_distribution" "main" {
   is_ipv6_enabled     = true
   default_root_object = "index.html"
   aliases             = [var.domain_name]
-  price_class         = "PriceClass_100"
+  price_class         = "PriceClass_All"
+  web_acl_id          = "arn:aws:wafv2:us-east-1:268249541900:global/webacl/CreatedByCloudFront-a8e569f0/9d2ca1d8-4f89-4e92-96da-ac204c2ac8f3"
+
 
   origin {
     domain_name              = aws_s3_bucket.site.bucket_regional_domain_name
@@ -128,23 +130,12 @@ resource "aws_cloudfront_distribution" "main" {
     cached_methods         = ["GET", "HEAD"]
     target_origin_id       = "S3-${var.domain_name}"
     viewer_protocol_policy = "redirect-to-https"
-    compress               = true
-
-    forwarded_values {
-      query_string = false
-      cookies {
-        forward = "none"
-      }
-    }
+    cache_policy_id        = "658327ea-f89d-4fab-a63d-7e88639e58f6"
 
     function_association {
       event_type   = "viewer-request"
       function_arn = aws_cloudfront_function.url_rewrite.arn
     }
-
-    min_ttl     = 0
-    default_ttl = 3600
-    max_ttl     = 86400
   }
 
   custom_error_response {
