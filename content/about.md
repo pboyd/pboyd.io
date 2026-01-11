@@ -4,9 +4,11 @@ draft: false
 lastmod: 2026-01-10
 layout: about
 ---
-I'm Paul Boyd, a mostly self-taught software developer who currently works at Red Hat.
+I'm Paul Boyd, a mostly self-taught software developer who currently works at Red Hat. I have a [LinkedIn profile](https://www.linkedin.com/in/paul-boyd-6307b139/) if you want to connect.
 
-The best way to contact me is by [email](mailto:paul@pboyd.io). I'm [pboyd](https://github.com/pboyd/) on GitHub, and I occasionally use [LinkedIn](https://www.linkedin.com/in/paul-boyd-6307b139/).
+The source to this site is [published on GitHub](https://github.com/pboyd/pboyd.io).
+
+Disagree with me? Send me an [email](mailto:paul@pboyd.io). You can also [open an issue](https://github.com/pboyd/pboyd.io/issues/new).
 
 _Opinions published here are mine, not those of my current or former employers._
 
