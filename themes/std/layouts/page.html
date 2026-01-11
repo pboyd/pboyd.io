@@ -9,5 +9,6 @@
 
   {{ .Content }}
   {{ partial "terms.html" (dict "taxonomy" "tags" "page" .) }}
+  <a href="https://github.com/pboyd/pboyd.io/tree/main/content/{{ .File.Path }}">Source</a> / <a href="https://github.com/pboyd/pboyd.io/commits/main/content/{{ .File.Path }}">History</a>
   </article>
 {{ end }}
