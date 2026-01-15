@@ -2,6 +2,7 @@
 date: 2026-01-15 07:15:17-05:00
 draft: false
 title: 'Coming to terms with AI Coding Tools'
+type: post
 ---
 
 I love writing code. My professional titles have almost always been _Software
