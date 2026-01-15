@@ -2,6 +2,7 @@ baseURL = 'https://pboyd.io/'
 languageCode = 'en-us'
 title = 'pboyd.io'
 theme = 'std'
+enableRobotsTXT = true
 
 [markup]
   [markup.highlight]
