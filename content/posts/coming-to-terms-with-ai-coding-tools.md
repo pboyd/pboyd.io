@@ -13,7 +13,7 @@ honest, it's the code, not the software, that I love.
 Don't misunderstand me. I like it when people want to use the software I work
 on, but most software is terrible and I can't count on anyone liking it. It's
 conceived in a drunken collaboration between Product and Marketing and joyously
-received at birth. But it's first steps are so awkward that no can imagine it
+received at birth. But its first steps are so awkward that no one can imagine it
 running and before long even its, now sober, parents stop expecting much.
 Lacking the resolve to snuff it in the cradle, but not wanting it to corrupt
 the more promising software either, they hand it to a developer like me to see
@@ -29,8 +29,8 @@ me is to write specs and check that the implementation is correct. All software,
 no code.
 
 I loathed Cursor as I installed it. I thought about 12-year me wondering how
-they made my games work, and how that if I had just gone outside that day
-instead poking around at a BASIC interpreter then maybe I wouldn't be in this
+they made my games work, and that if I had just gone outside that day
+instead of poking around at a BASIC interpreter then maybe I wouldn't be in this
 situation. But, no matter, remaining relevant (or, at least, employed) meant
 learning the incantations of this cursed IDE.
 
@@ -47,14 +47,14 @@ uninspiring, but sufficient. I was less vibe-coder, and more mule driver.
 
 Outside of bossing around an AI code bot, I spent the rest of my time in Cursor
 fighting 20+ years of VIM muscle memory (yes, I found VI-mode, it was
-almost--but not quite--passable). After a brief diversion with with
+almost--but not quite--passable). After a brief diversion with
 [Avante][avante], I landed on Claude Code. It was perfect. I coded in nvim and
 it waited patiently out of my way in its tmux pane until I needed it to write
 tests.
 
 [avante]: https://github.com/yetone/avante.nvim
 
-I found some other uses for it too. Because, while I loving writing code, I
+I found some other uses for it too. Because, while I love writing code, I
 don't love writing _all_ code. I've already mentioned unit tests, but there's
 also refactoring (e.g. "make this `int64` an `int32` and fix everywhere that
 uses it"), mindlessly extending established patterns (e.g. "add one more param
@@ -66,13 +66,13 @@ scaffolding and admin tasks around it? Let Claude figure it out.
 
 That's where I am right now, solidly in the AI-assisted programmer camp. It
 hasn't turned me into a drone that merely tells Claude to load a ticket and
-implement it. It hasn't given me programming superpowers either. What is has
+implement it. It hasn't given me programming superpowers either. What it has
 done is let me focus on the parts of my job that I enjoy. I like figuring out
 algorithms and discovering the reason for a bug and that's still there.
 
 Can this last? I can only speculate. I'm sure there are executives who would
 like to replace engineering departments with a handful of AI-powered product
-owners, and maybe some will try it. But with the today's tools, I don't see how
+owners, and maybe some will try it. But with today's tools, I don't see how
 it can work for very long. Someone still needs to understand the code and the
 problem space deeply enough to drive the tool properly. It's easy to generate a
 program you don't understand, but it's much harder to fix a program you don't
