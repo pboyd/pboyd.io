@@ -1,6 +1,6 @@
 ---
 date: 2026-01-15 07:15:17-05:00
-draft: true
+draft: false
 title: 'Coming to terms with AI Coding Tools'
 ---
 
