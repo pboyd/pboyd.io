@@ -158,6 +158,10 @@ article time {
   text-align: center;
 }
 
+article p {
+  text-align: justify;
+}
+
 main .footnotes ol {
     font-size: smaller;
 }
