@@ -1,5 +1,5 @@
 ---
-date: '2026-01-11T13:27:20-05:00'
+date: 2026-01-15 07:15:17-05:00
 draft: true
 title: 'Coming to terms with AI Coding Tools'
 ---
