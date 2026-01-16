@@ -1,0 +1,37 @@
+<ul class="post-list">
+  {{ with site.GetPage "/posts/coming-to-terms-with-ai-coding-tools/" }}
+    <li>
+      {{ $dateMachine := .Date | time.Format "2006-01-02T15:04:05-07:00" }}
+      {{ $dateDisplay := .Date | time.Format "2006-01-02"}}
+      <time datetime="{{ $dateMachine }}">{{ $dateDisplay }}</time><a class="title" href="{{ .Permalink }}">{{ .Title }}</a>
+    </li>
+  {{ end }}
+  {{ with site.GetPage "/posts/securing-a-linux-vm/" }}
+    <li>
+      {{ $dateMachine := .Date | time.Format "2006-01-02T15:04:05-07:00" }}
+      {{ $dateDisplay := .Date | time.Format "2006-01-02"}}
+      <time datetime="{{ $dateMachine }}">{{ $dateDisplay }}</time><a class="title" href="{{ .Permalink }}">{{ .Title }}</a>
+    </li>
+  {{ end }}
+  {{ with site.GetPage "/posts/go-concurrency-fan-out-fan-in/" }}
+    <li>
+      {{ $dateMachine := .Date | time.Format "2006-01-02T15:04:05-07:00" }}
+      {{ $dateDisplay := .Date | time.Format "2006-01-02"}}
+      <time datetime="{{ $dateMachine }}">{{ $dateDisplay }}</time><a class="title" href="{{ .Permalink }}">{{ .Title }}</a>
+    </li>
+  {{ end }}
+  {{ with site.GetPage "/posts/comma-dash-dot/" }}
+    <li>
+      {{ $dateMachine := .Date | time.Format "2006-01-02T15:04:05-07:00" }}
+      {{ $dateDisplay := .Date | time.Format "2006-01-02"}}
+      <time datetime="{{ $dateMachine }}">{{ $dateDisplay }}</time><a class="title" href="{{ .Permalink }}">{{ .Title }}</a>
+    </li>
+  {{ end }}
+  {{ with site.GetPage "/posts/5-ways-to-write-a-go-database-model/" }}
+    <li>
+      {{ $dateMachine := .Date | time.Format "2006-01-02T15:04:05-07:00" }}
+      {{ $dateDisplay := .Date | time.Format "2006-01-02"}}
+      <time datetime="{{ $dateMachine }}">{{ $dateDisplay }}</time><a class="title" href="{{ .Permalink }}">{{ .Title }}</a>
+    </li>
+  {{ end }}
+</ul>
