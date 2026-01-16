@@ -144,6 +144,12 @@ resource "aws_cloudfront_distribution" "main" {
     response_page_path = "/404.html"
   }
 
+  custom_error_response {
+    error_code         = 403
+    response_code      = 404
+    response_page_path = "/404.html"
+  }
+
   restrictions {
     geo_restriction {
       restriction_type = "none"
