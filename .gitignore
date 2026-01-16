@@ -9,3 +9,6 @@ resources/_tmp/
 # Claude Code and internal documentation
 .claude/
 docs/
+
+# Access logs
+logs/
