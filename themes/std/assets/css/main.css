@@ -63,6 +63,7 @@ body {
 
   font-size: 20px;
   font-family: "Noto Sans", sans-serif;
+  line-height: 1.4;
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
@@ -143,7 +144,8 @@ main {
 
 main p {
   margin: 40px 0;
-  font-family: "Noto Serif", serif;
+  font-family: "Noto Serif", "Noto Serif Fallback", serif;
+  line-height: 1.4;
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
@@ -286,4 +288,10 @@ ul.post-list time {
 
 ul.post-list time::after {
     content: " — ";
+}
+
+@font-face {
+    font-family: 'Noto Serif Fallback';
+    src: local('Times New Roman'), local('Liberation Serif');
+    size-adjust: 117%;
 }
