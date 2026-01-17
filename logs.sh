@@ -10,14 +10,16 @@ usage() {
     echo ""
     echo "Commands:"
     echo "  sync                  Sync logs from S3"
+    echo "  raw [--from DATE] [--to DATE] [--path PATTERN]"
+    echo "      [--referer PATTERN] [--user-agent PATTERN]"
+    echo "                       View logs in goaccess"
+    echo "                       DATE format: YYYY-MM-DD"
+    echo "                       PATTERN: regex to match against field"
     echo "  view [--from DATE] [--to DATE] [--path PATTERN]"
     echo "       [--referer PATTERN] [--user-agent PATTERN]"
     echo "                        View logs in goaccess"
     echo "                        DATE format: YYYY-MM-DD"
     echo "                        PATTERN: regex to match against field"
-    echo "  all [--from DATE] [--to DATE] [--path PATTERN]"
-    echo "      [--referer PATTERN] [--user-agent PATTERN]"
-    echo "                        Sync then view"
     echo "  top-posts [-n NUM]    Output top NUM posts as Hugo template (default: 5)"
     exit 1
 }
@@ -27,7 +29,7 @@ sync_logs() {
     aws s3 sync "$S3_BUCKET" "$LOGS_DIR/" --size-only
 }
 
-view_logs() {
+raw_logs() {
     local from_date=""
     local to_date=""
     local filter_field=""
@@ -98,10 +100,14 @@ view_logs() {
 
     echo "Processing ${#files[@]} log files..."
     if [ -n "$filter_pattern" ]; then
-        gzip -dc "${files[@]}" | awk -v field="$filter_field" -v pattern="$filter_pattern" '$field ~ pattern' | goaccess - --log-format CLOUDFRONT
+        gzip -dc "${files[@]}" | awk -v field="$filter_field" -v pattern="$filter_pattern" '$field ~ pattern'
     else
-        gzip -dc "${files[@]}" | goaccess - --log-format CLOUDFRONT
+        gzip -dc "${files[@]}"
     fi
+}
+
+view_logs() {
+    raw_logs "$@" | goaccess - --log-format CLOUDFRONT
 }
 
 top_posts() {
@@ -151,13 +157,12 @@ case "${1:-}" in
     sync)
         sync_logs
         ;;
+    raw)
+        shift
+        raw_logs "$@"
+        ;;
     view)
         shift
-        view_logs "$@"
-        ;;
-    all)
-        shift
-        sync_logs
         view_logs "$@"
         ;;
     top-posts)
