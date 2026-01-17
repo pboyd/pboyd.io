@@ -39,10 +39,16 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Sync to S3
+        id: s3-sync
         run: |
-          aws s3 sync public/ s3://pboyd.io/ --delete --size-only
+          output=$(aws s3 sync public/ s3://pboyd.io/ --delete --size-only)
+          echo "$output"
+          if [ -n "$output" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
 
       - name: Invalidate CloudFront cache
+        if: steps.s3-sync.outputs.changed == 'true'
         run: |
           aws cloudfront create-invalidation \
             --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
