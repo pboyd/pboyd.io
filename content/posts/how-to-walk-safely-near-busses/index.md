@@ -4,9 +4,7 @@ date: 2026-01-20
 draft: false
 type: post
 ---
-The "bus factor" is often brought up in software engineering discussions. And rightly so, what would happen the organization if the single engineer who really knows how it all works were hit by a bus? I have fortunately never had a co-worker meet such an untimely end, but as often as it comes up there must be an epidemic of software developers being hit by busses. And yet, as an industry we only seem concerned with limiting the impact of losing that single precious engineer. I say, no more. It's unacceptable for us to continue losing engineers in this way.
-
-To help you educate yourself, I've prepared the following flowchart to use when crossing the street.
+What would happen if the single engineer who really knows how it all works in your company were hit by a bus? I have fortunately never had a co-worker meet such an untimely end, but as often as I've heard this question I must assume there is an epidemic of software developers being hit by busses. And yet, we only seem concerned about limiting the impact of losing that single precious engineer. I say, enough! It's unacceptable for us to continue losing engineers like thise. Even an engineer who isn't a single point of failure deserves to make it to the other side of the street. To that end, I've prepared the following flowchart to help our would-be roadkill cross the street.
 
 {{< autoimg
     src="bus-safety.png"
