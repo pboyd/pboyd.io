@@ -54,6 +54,13 @@ code {
     code {
       background: #3c5372;
     }
+
+    figure.light {
+        display: none;
+    }
+    figure.dark {
+        display: block !important;
+    }
 }
 
 body {
@@ -248,6 +255,10 @@ figure figcaption.attribution {
     font-size: small;
     text-align: right;
     font-style: italic;
+}
+
+figure.dark {
+    display: none;
 }
 
 ul.post-list time {

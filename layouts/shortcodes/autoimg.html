@@ -1,6 +1,6 @@
 {{- $image := .Page.Resources.GetMatch ( .Get "src" ) -}}
 {{- if $image -}}
-<figure{{ if .Get "float" }} class="float-{{ .Get "float" }}"{{ end }}>
+<figure{{ if .Get "class" }} class="{{ .Get "class" }}"{{ end }}>
     {{ if .Get "link" }}
     <a href="{{ .Get "link" }}">
     {{ end }}
