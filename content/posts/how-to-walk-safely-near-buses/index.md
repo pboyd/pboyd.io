@@ -1,6 +1,6 @@
 ---
 title: "How to walk safely near buses"
-date: 2026-01-20
+date: 2026-01-20 20:47:47-05:00
 draft: false
 type: post
 ---
