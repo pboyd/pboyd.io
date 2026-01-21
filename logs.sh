@@ -107,7 +107,7 @@ raw_logs() {
 }
 
 view_logs() {
-    raw_logs "$@" | goaccess - --log-format CLOUDFRONT
+    raw_logs "$@" | goaccess - --log-format CLOUDFRONT --http-protocol no
 }
 
 top_posts() {
