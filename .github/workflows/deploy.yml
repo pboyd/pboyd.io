@@ -41,7 +41,7 @@ jobs:
       - name: Sync to S3
         id: s3-sync
         run: |
-          output=$(aws s3 sync public/ s3://pboyd.io/ --delete --size-only)
+          output=$(aws s3 sync public/ s3://pboyd.io/ --delete)
           echo "$output"
           if [ -n "$output" ]; then
             echo "changed=true" >> $GITHUB_OUTPUT
