@@ -8,11 +8,11 @@ What would happen if the one engineer who really knows how it all works in your 
 
 {{< autoimg
     src="bus-safety.png"
-    link="bus-safety.png"
+    link="bus-safety-big.png"
     class="light"
     alt="Flowchart to help safely cross the street near buses" >}}
 {{< autoimg
     src="bus-safety-dark.png"
-    link="bus-safety-dark.png"
+    link="bus-safety-dark-big.png"
     class="dark"
     alt="Flowchart to help safely cross the street near buses" >}}
