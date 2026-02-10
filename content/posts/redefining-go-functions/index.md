@@ -135,8 +135,15 @@ helper function:
 
 ```Go
 func mprotect(addr uintptr, length int, flags int) error {
+	pageSize := syscall.Getpagesize()
+
+	// Round address down to page boundary.
 	pageStart := addr &^ (uintptr(syscall.Getpagesize()) - 1)
-	region := unsafe.Slice((*byte)(unsafe.Pointer(pageStart)), length)
+
+	// Round up to cover complete pages.
+	regionSize := (int(addr-pageStart) + length + pageSize - 1) &^ (pageSize - 1)
+
+	region := unsafe.Slice((*byte)(unsafe.Pointer(pageStart)), regionSize)
 	return syscall.Mprotect(region, flags)
 }
 ```
