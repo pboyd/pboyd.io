@@ -4,20 +4,35 @@ draft: false
 title: Redefining Go Functions
 type: post
 ---
-I once wrote a [Perl subroutine][1] that, when called, would wrap its caller in a subroutine that cached the return value based on the input (a memoizer). That much was potentially useful, but it also inserted a copy of itself into the caller, so that _its_ caller would be memoized too. A well-placed call to `aggressively_memoize` could back-propagate to a whole codebase spreading functional purity like a virus. The resulting program would be fast, and yet largely static.
+I once wrote a [Perl subroutine][1] that, when called, would wrap its caller in
+a subroutine that cached the return value based on the input (a memoizer). That
+much was potentially useful, but it also inserted a copy of itself into the
+caller, so that _its_ caller would be memoized too. A well-placed call to
+`aggressively_memoize` could back-propagate to a whole codebase spreading
+functional purity like a virus. The resulting program would be fast, and yet
+largely static.
 
-That was possible because Perl, like many interpreted languages, allows functions to be rewritten:
+That was possible because Perl, like many interpreted languages, allows
+functions to be rewritten:
 
 ```Perl
 no strict 'refs';
 *{$caller} = $new_sub;
 ```
 
-Overuse of this feature has given it a terrible reputation, earning it the derisive nickname "monkey patching". Spend a couple hours debugging why your program prints the wrong time only to discover you have a mock time implementation implanted by some distant dependency and you'll hate it too. But these days I program mostly in Go where such nonsense isn't possible. Right?
+Overuse of this feature has given it a terrible reputation, earning it the
+derisive nickname "monkey patching". Spend a couple hours debugging why your
+random numbers aren't so random only to discover you have a mock RNG implanted
+by some distant dependency and you'll hate it too. But these days I program
+mostly in Go where such nonsense isn't possible. Right?
 
-Well no, not exactly. True, Go doesn't offer this as a language feature. But a CPU executes instructions from memory, and we modify memory all the time. Did Go fundamentally change that? I don't think so.
+Well no, not exactly. True, Go doesn't offer this as a language feature. But a
+CPU executes instructions from memory, and we modify memory all the time. Did
+Go fundamentally change that? I don't think so.
 
-Let's say I would prefer Alan Jackson's sense of time over whatever reality `time.Now` cares to remind me of. Which is to say, I want this function to replace `time.Now`:
+Let's say I would prefer Alan Jackson's sense of time over whatever reality
+`time.Now` cares to remind me of. Which is to say, I want this function to
+replace `time.Now`:
 
 ```Go
 func myTimeNow() time.Time {
@@ -25,7 +40,8 @@ func myTimeNow() time.Time {
 }
 ```
 
-The first thing we need is the address of the real `time.Now`. That's easiest to do using `reflect`:
+The first thing we need is the address of the real `time.Now`. That's easiest
+to get with `reflect`:
 
 ```Go
 func main() {
@@ -34,7 +50,7 @@ func main() {
 }
 ```
 
-Run this program and you'll get an address:
+Run this program and you'll get an address. On my computer:
 
 ```
 $ go build -o main && ./main
@@ -49,11 +65,14 @@ TEXT time.Now(SB) /opt/go1.25.5/src/time/time.go
   time.go:1343          0x498b64                0f8684000000            JBE 0x498bee
 ```
 
-Function pointers in Go actually point to the entry point of the function.
+The actual address may be different for you, but the number in the program
+output and the address in the disassembler output will be the same, because
+function pointers in Go are pointers to the entry point of the program.
 
-We don't know the length of the function, but we can make a guess that it's at least 8 bytes and get a slice to it:
+We don't know the length of the function, but we can guess that it's at least 8
+bytes and get a slice based on that:
 
-```
+```Go
 func main() {
 	addr := reflect.ValueOf(time.Now).Pointer()
 	buf := unsafe.Slice((*byte)(unsafe.Pointer(addr)), 8)
@@ -61,6 +80,7 @@ func main() {
 }
 ```
 
+Run that and you'll see:
 ```
 $ go build -o main && ./main
 ([]uint8) (len=8 cap=8) {
@@ -70,8 +90,21 @@ $ go build -o main && ./main
 
 `49 3b 66 10` matches the first instruction from the disassembled output.
 
-If we overwrite that with a jump/branch instruction to our replacement function
-we should be all set. On x86 that looks like:
+Now we can find a function and read it's machine instructions, all that's left
+is to modify it's behavior. It would make sense to copy the machine
+instructions from our replacement function to the location of the original
+function, but machine instruction can't generally be moved like that unless the
+relative addresses in them are adjusted. Setting that problem aside, the
+replacement could still be too big.
+
+The easiest solution it to just write a `JMP` (or branch) instruction at the
+beginning of the original function to redirect the processor to our new
+function. Because it's a `JMP`, not a `CALL`, the `RET` from our replacement
+function will return to the original caller and none of the remaining
+instructions from the original function will execute. As long as the arguments
+are the same for both functions the caller will be none the wiser.
+
+On x86 the code to encode the instruction looks like:
 
 ```Go
 func main() {
@@ -87,21 +120,20 @@ func main() {
 }
 ```
 
-Now run it, and:
-
+But if you run it you'll just get a segfault:
 ```
 unexpected fault address 0x499400
 fatal error: fault
 [signal SIGSEGV: segmentation violation code=0x2 addr=0x499400 pc=0x4a3c9c]
 ```
 
-Of course it segfaults. Letting a program modify its own code is dangerous, and
-protected memory has been standard for decades. But it's not hard to get
-around, we just need to change the permissions on that memory page. On Unix
-systems we do that with `mprotect(2)`. The start address has to be page
-aligned, so a little helper function is in order:
+Letting a program modify its own code is dangerous, which is why protected
+memory has been standard for decades. But it's not hard to get around, we just
+need to change the permissions on that memory page. On Unix systems we do that
+with `mprotect(2)`. The start address has to be page aligned, so a little
+helper function is in order:
 
-```
+```Go
 func mprotect(addr uintptr, length int, flags int) error {
 	pageStart := addr &^ (uintptr(syscall.Getpagesize()) - 1)
 	region := unsafe.Slice((*byte)(unsafe.Pointer(pageStart)), length)
@@ -137,16 +169,23 @@ $ go build -o main && ./main
 
 _Viola!_ It's 5PM. It's always 5PM.
 
-[Full source][2]
+[Here's the full source code.][2]
 
-If you're on ARM64, you'll need [this version][3]. Aside from different instructions, the ARM version also requires clearing the instruction cache. (I've only tested the ARM64 version on a Raspberry Pi 4 running Linux. I _think_ it will work for Darwin on Apple silicon but I don't have the hardware to test it--if you try it, let me know how it goes.)
+If you're on ARM64, you'll need [this version][3]. Aside from different
+instructions, ARM also requires clearing the instruction cache. (I've only
+tested the ARM64 version on a Raspberry Pi 4 running Linux. I _think_ it will
+work for Darwin on Apple silicon but I don't have hardware to test it--if you
+try it, let me know how it goes.)
 
-If you're on Windows, you won't have `mprotect`. Supposedly [`VirtualProtect`][4] is equivalent (also see the wrapper in [golang.org/x/sys/windows][5]). If you get it working on Windows, send me a Gist and I'll gladly link to it here.
+If you're on Windows, you won't have `mprotect`. Supposedly
+[`VirtualProtect`][4] is equivalent (also see the wrapper in
+[golang.org/x/sys/windows][5]). If you get it working on Windows, send me a
+Gist and I'll gladly link to it here.
 
 ## The problems
 
 Play around with overriding functions and you'll find that some functions can't
-be overridden. A frequent problem is in-line functions. For example,
+be overridden. In-line functions are a frequent culprit. For example,
 `fmt.Printf` will probably be in-lined because it's really a small wrapper
 around `fmt.Fprintf`. If you disassemble a call to it you'll see something like
 this:
@@ -179,11 +218,11 @@ definition of `fmt.Printf` exists if you get a pointer to it, but if won't
 matter if you insert a `JMP` there because, unless you call it through a
 function pointer, nothing uses it.
 
-Generic functions are similar have a similar problem. I'll skip the details for
-brevity, but the gist is that the function you get a pointer to is different
-from the function that's typically called.
+Generic functions have a similar problem. I'll skip the details for brevity,
+but the gist is that the function you can get a pointer to is different from
+the function that's typically called.
 
-Things can get weird if you try overriding methods. Take a contrived example:
+Things can get weird if you try overriding methods. A simple example:
 
 ```Go
 type counter struct {
@@ -195,17 +234,15 @@ func (c *counter) Inc() {
 	c.A++
 }
 
-
 func main() {
 	c := &counter{}
-	c.Inc()
 	c.Inc()
 	c.Inc()
 	fmt.Println(c.A)
 }
 ```
 
-Unsurprisingly, this outputs `3`. Let's say we want to replace `Inc` with the version from this struct instead:
+Unsurprisingly, this outputs `2`. Let's say we want to replace `Inc` with the version from this struct instead:
 
 ```Go
 type doubleCounter struct {
@@ -225,7 +262,6 @@ func main() {
 	c := &counter{}
 	c.Inc()
 	c.Inc()
-	c.Inc()
 
 	redefineFunc((*counter).Inc, (*doubleCounter).Inc)
 	c.Inc()
@@ -234,14 +270,16 @@ func main() {
 }
 ```
 
-We could reasonably expect the output to be `5`, but it instead prints
-`8589934595`. `doubleCounter.Inc` is compiled expecting to operate on a
-`doubleCounter` struct but we've forced it to use the `counter` struct, so it
-dutifully operates on the first 32-bits of `counter.A` and we get the
-equivalent of `2<<32 + 3`. This is admittedly a contrived example, but you can
-imagine the resulting crash if these were pointers or the chaos created if
-these weren't simple integers but larger structs. And consider what would
-happen if `doubleCounter` were instead:
+If this worked perfectly the output would be `4`. But it actually prints
+`8589934594`. `doubleCounter.Inc` is compiled expecting to operate on a
+`doubleCounter` struct but we've forced it to use the `counter` struct.
+`doubleCounter.A` is at the same location as the high 32-bits of `counter.A` so
+the output is `2<<32 + 2`, or `8589934594`.
+
+This example is admittedly a contrived, but you can imagine the resulting crash
+if these were pointers or the chaos created if these weren't simple integers
+but larger structs. Also consider what would happen if `doubleCounter` were
+instead:
 
 ```Go
 type doubleCounter struct {
@@ -251,20 +289,19 @@ type doubleCounter struct {
 ```
 
 Now it's adding two to some portion of memory immediately our instance of
-`counter`. Maybe it harmlessly updates some padding, but more likely it's
-something internal to Go that will lead to a crash sooner or later. You can
-expect some awful bugs if you try to replace methods this way. The only
-potentially safe way to override a method is if the two structs are identical
-(or, at least, the same size and you're very careful).
+`counter`. Maybe it harmlessly updates some padding, maybe it corrupts the heap
+or overwrites an unrelated variable on the stack. Who knows exactly? But I do
+know you can expect some awful bugs. The only potentially safe way to override
+a method is if the two structs are identical (or, at least, the same size and
+you're very careful).
 
-So, can you redefine Go functions? In general, yes. There are a few scenarios
-that don't work at all, and a few that require a lot of care. But you bypass
-all the safeties in the language and can pretty easily create some really nasty
-bugs.
+So, yes, it's possible to redefine Go functions. Sometimes it won't work, and
+you'll probably create bugs, but it can often be done.
 
 If you really must do this, I made a [package][6] to wrap this insidious code
-in a friendly interface. As of right now, it only works for amd64 and I won't
-recommend using it. But it's a lot of fun to hack on and PR's are welcome.
+in a friendly interface. As of right now, it only works on Linux/Unix and
+amd64. For all the reasons above (and a few I didn't cover), I can't recommend
+using it. But it's fun to hack on and PR's are welcome.
 
 [1]: https://gist.github.com/pboyd/8b211023ade6db2010202139d80a139c
 [2]: https://gist.github.com/pboyd/1e1018de131e0f27a3bef1f377952c2e#file-redefine_func_amd64-go
