@@ -21,3 +21,8 @@ enableRobotsTXT = true
         name = 'About'
         pageRef = '/about'
         weight = 30
+    [[menus.main]]
+        weight = 40
+        name = 'RSS'
+        pre = '<img src="/rss-icon.png" alt="RSS"></img>'
+        url = '/index.xml'

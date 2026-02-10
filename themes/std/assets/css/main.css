@@ -242,6 +242,11 @@ nav ul li {
   padding-right: 10px;
 }
 
+nav ul li img {
+    vertical-align: middle;
+    padding-right: 0.3em;
+}
+
 figure {
     margin: auto;
     width: fit-content;
