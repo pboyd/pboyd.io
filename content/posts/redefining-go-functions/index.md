@@ -1,5 +1,5 @@
 ---
-date: 2026-02-05T05:53:26-05:00
+date: 2026-02-10T00:00:00-05:00
 draft: false
 title: Redefining Go Functions
 type: post
@@ -94,7 +94,8 @@ Now that we can find a function and read its machine instructions, all that's
 left is to modify its behavior. Copying the instructions from our replacement
 function to the location of the original function seems logical, but relocating
 machine instructions requires adjusting any relative addresses. That's
-solvable, but the replacement function could still be bigger than the original.
+solvable, but the replacement function could still be bigger than the original,
+and then we'd need another solution anyway.
 
 The easiest approach is to write a `JMP` (or branch) instruction at the
 beginning of the original function to redirect the processor to our new
@@ -297,9 +298,9 @@ you're very careful).
 So, yes, you can redefine Go functions&mdash;sometimes. Expect bugs.
 
 If you really must do this, I made a [package][6] to wrap this insidious code
-in a friendly interface. For now at least, it only works on Linux/Unix and
-amd64. For all the reasons above (and a few I didn't cover), I can't recommend
-using it. But it's fun to hack on and PRs are welcome.
+in a friendly interface. It only works on Linux/Unix and AMD64 (I hope to port
+it to ARM soon). For all the reasons above (and a few I didn't cover), I can't
+recommend using it. But it's fun to hack on and PRs are welcome.
 
 [1]: https://gist.github.com/pboyd/8b211023ade6db2010202139d80a139c
 [2]: https://gist.github.com/pboyd/1e1018de131e0f27a3bef1f377952c2e#file-redefine_func_amd64-go
