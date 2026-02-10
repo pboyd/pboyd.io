@@ -4,16 +4,15 @@ draft: false
 title: Redefining Go Functions
 type: post
 ---
-I once wrote a [Perl subroutine][1] that, when called, would wrap its caller in
-a subroutine that cached the return value based on the input (a memoizer). That
-much was potentially useful, but it also inserted a copy of itself into the
-caller, so that _its_ caller would be memoized too. A well-placed call to
-`aggressively_memoize` could back-propagate to a whole codebase spreading
-functional purity like a virus. The resulting program would be fast, and yet
-largely static.
+I once wrote a [Perl subroutine][1] that would [memoize][7] the subroutine that
+called it. That much was useful, but it also inserted a copy of itself into the
+caller, so that _its_ callers would be memoized too. A well-placed call to
+`aggressively_memoize` could back-propagate to the whole codebase spreading
+functional purity like a virus. The resulting program would get faster as it
+used more memory and became increasingly static.
 
 That was possible because Perl, like many interpreted languages, allows
-functions to be rewritten:
+functions to be rewritten at runtime:
 
 ```Perl
 no strict 'refs';
@@ -27,12 +26,13 @@ by some distant dependency and you'll hate it too. But these days I program
 mostly in Go where such nonsense isn't possible. Right?
 
 Well no, not exactly. True, Go doesn't offer this as a language feature. But a
-CPU executes instructions from memory, and we modify memory all the time. Did
-Go fundamentally change that? I don't think so.
+CPU executes instructions from memory, and we can modify memory. Did Go
+fundamentally change all that? Not at all. In fact, Go gives us all the
+low-level tools we need to do the job.
 
-Let's say I would prefer Alan Jackson's sense of time over whatever reality
-`time.Now` cares to remind me of. Which is to say, I want this function to
-replace `time.Now`:
+Let's say that I prefer Alan Jackson's sense of time over whatever reality
+`time.Now` cares to remind me of. So I want this function to replace
+`time.Now`:
 
 ```Go
 func myTimeNow() time.Time {
@@ -91,13 +91,13 @@ $ go build -o main && ./main
 `49 3b 66 10` matches the first instruction from the disassembled output.
 
 Now we can find a function and read it's machine instructions, all that's left
-is to modify it's behavior. It would make sense to copy the machine
-instructions from our replacement function to the location of the original
-function, but machine instruction can't generally be moved like that unless the
-relative addresses in them are adjusted. Setting that problem aside, the
-replacement could still be too big.
+is to modify it's behavior. Copying the instructions from our replacement
+function to the location of the original function would seem logical, but
+machine instruction can't be relocated unless the relative addresses in them
+are adjusted. That's solvable, but the replacement function could still be
+bigger than the original.
 
-The easiest solution it to just write a `JMP` (or branch) instruction at the
+The easiest thing to do is to write a `JMP` (or branch) instruction at the
 beginning of the original function to redirect the processor to our new
 function. Because it's a `JMP`, not a `CALL`, the `RET` from our replacement
 function will return to the original caller and none of the remaining
@@ -309,3 +309,4 @@ using it. But it's fun to hack on and PR's are welcome.
 [4]: https://learn.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualprotect
 [5]: https://pkg.go.dev/golang.org/x/sys@v0.41.0/windows#VirtualProtect
 [6]: https://github.com/pboyd/redefine
+[7]: https://en.wikipedia.org/wiki/Memoization
