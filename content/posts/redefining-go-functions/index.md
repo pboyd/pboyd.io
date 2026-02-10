@@ -7,7 +7,7 @@ type: post
 I once wrote a [Perl subroutine][1] that would [memoize][7] the subroutine that
 called it. That much was useful, but it also inserted a copy of itself into the
 caller, so that _its_ callers would be memoized too. A well-placed call to
-`aggressively_memoize` could back-propagate to the whole codebase spreading
+`aggressively_memoize` could back-propagate to the whole codebase, spreading
 functional purity like a virus. The resulting program would get faster as it
 used more memory and became increasingly static.
 
@@ -25,7 +25,7 @@ random numbers aren't so random only to discover you have a mock RNG implanted
 by some distant dependency and you'll hate it too. But these days I program
 mostly in Go where such nonsense isn't possible. Right?
 
-Well no, not exactly. True, Go doesn't offer this as a language feature. But a
+Well, no, not exactly. True, Go doesn't offer this as a language feature. But a
 CPU executes instructions from memory, and we can modify memory. Did Go
 fundamentally change all that? Not at all. In fact, Go gives us all the
 low-level tools we need to do the job.
@@ -40,8 +40,8 @@ func myTimeNow() time.Time {
 }
 ```
 
-The first thing we need is the address of the real `time.Now`. That's easiest
-to get with `reflect`:
+The first thing we need is the address of the real `time.Now`. The easiest way
+is with `reflect`:
 
 ```Go
 func main() {
@@ -90,7 +90,7 @@ $ go build -o main && ./main
 
 `49 3b 66 10` matches the first instruction from the disassembled output.
 
-Now we can find a function and read its machine instructions, all that's left
+Now that we can find a function and read its machine instructions, all that's left
 is to modify its behavior. Copying the instructions from our replacement
 function to the location of the original function would seem logical, but
 machine instructions can't be relocated unless the relative addresses in them
@@ -102,9 +102,9 @@ beginning of the original function to redirect the processor to our new
 function. Because it's a `JMP`, not a `CALL`, the `RET` from our replacement
 function will return to the original caller and none of the remaining
 instructions from the original function will execute. As long as the arguments
-are the same for both functions the caller will be none the wiser.
+are the same for both functions, the caller will be none the wiser.
 
-On x86 the code to encode the instruction looks like:
+On x86, the code to encode the instruction looks like:
 
 ```Go
 func main() {
@@ -120,7 +120,7 @@ func main() {
 }
 ```
 
-But if you run it you'll just get a segfault:
+But if you run it, you'll just get a segfault:
 ```
 unexpected fault address 0x499400
 fatal error: fault
@@ -128,9 +128,9 @@ fatal error: fault
 ```
 
 Letting a program modify its own code is dangerous, which is why protected
-memory has been standard for decades. But it's not hard to get around, we just
-need to change the permissions on that memory page. On Unix systems we do that
-with `mprotect(2)`. The start address has to be page aligned, so a little
+memory has been standard for decades. But it's not hard to get around&mdash;we just
+need to change the permissions on that memory page. On Unix systems, we do that
+with `mprotect(2)`. The start address has to be page-aligned, so a little
 helper function is in order:
 
 ```Go
@@ -174,7 +174,7 @@ There you go. It's 5PM. It's always 5PM.
 If you're on ARM64, you'll need [this version][3]. Aside from different
 instructions, ARM also requires clearing the instruction cache. (I've only
 tested the ARM64 version on a Raspberry Pi 4 running Linux. I _think_ it will
-work for Darwin on Apple silicon but I don't have hardware to test it--if you
+work for Darwin on Apple silicon but I don't have hardware to test it&mdash;if you
 try it, let me know how it goes.)
 
 If you're on Windows, you won't have `mprotect`. Supposedly
@@ -187,7 +187,7 @@ Gist and I'll gladly link to it here.
 Play around with overriding functions and you'll find that some functions can't
 be overridden. Inline functions are a frequent culprit. For example,
 `fmt.Printf` will probably be inlined because it's really a small wrapper
-around `fmt.Fprintf`. If you disassemble a call to it you'll see something like
+around `fmt.Fprintf`. If you disassemble a call to it, you'll see something like
 this:
 
 ```
@@ -218,7 +218,7 @@ definition of `fmt.Printf` exists if you get a pointer to it, but it won't
 matter if you insert a `JMP` there because, unless you call it through a
 function pointer, nothing uses it.
 
-Generic functions have a similar problem. I'll skip the details for brevity,
+Generic functions have a similar problem. For brevity, I'll skip the details,
 but the gist is that the function you can get a pointer to is different from
 the function that's typically called.
 
@@ -270,16 +270,16 @@ func main() {
 }
 ```
 
-If this worked perfectly the output would be `4`. But it actually prints
+If this worked perfectly, the output would be `4`. But it actually prints
 `8589934594`. `doubleCounter.Inc` is compiled expecting to operate on a
-`doubleCounter` struct but we've forced it to use the `counter` struct.
-`doubleCounter.A` is at the same location as the high 32-bits of `counter.A` so
+`doubleCounter` struct, but we've forced it to use the `counter` struct.
+`doubleCounter.A` is at the same location as the high 32-bits of `counter.A`, so
 the output is `2<<32 + 2`, or `8589934594`.
 
-This example is admittedly a contrived example, but you can imagine the
-resulting crash if these were pointers or the chaos created if these weren't
-simple integers but larger structs. Also consider what would happen if
-`doubleCounter` were instead:
+This is admittedly contrived, but you can imagine the resulting crash
+if these were pointers or the chaos created if these weren't simple integers
+but larger structs. Also consider what would happen if `doubleCounter` were
+instead:
 
 ```Go
 type doubleCounter struct {
