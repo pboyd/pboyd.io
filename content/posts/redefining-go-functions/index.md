@@ -67,7 +67,7 @@ TEXT time.Now(SB) /opt/go1.25.5/src/time/time.go
 
 The actual address may be different for you, but the number in the program
 output and the address in the disassembler output will be the same, because
-function pointers in Go are pointers to the entry point of the program.
+function pointers in Go are pointers to the entry point of the function.
 
 We don't know the length of the function, but we can guess that it's at least 8
 bytes and get a slice based on that:
@@ -90,10 +90,10 @@ $ go build -o main && ./main
 
 `49 3b 66 10` matches the first instruction from the disassembled output.
 
-Now we can find a function and read it's machine instructions, all that's left
-is to modify it's behavior. Copying the instructions from our replacement
+Now we can find a function and read its machine instructions, all that's left
+is to modify its behavior. Copying the instructions from our replacement
 function to the location of the original function would seem logical, but
-machine instruction can't be relocated unless the relative addresses in them
+machine instructions can't be relocated unless the relative addresses in them
 are adjusted. That's solvable, but the replacement function could still be
 bigger than the original.
 
@@ -167,7 +167,7 @@ $ go build -o main && ./main
 5:00PM
 ```
 
-_Viola!_ It's 5PM. It's always 5PM.
+There you go. It's 5PM. It's always 5PM.
 
 [Here's the full source code.][2]
 
@@ -185,8 +185,8 @@ Gist and I'll gladly link to it here.
 ## The problems
 
 Play around with overriding functions and you'll find that some functions can't
-be overridden. In-line functions are a frequent culprit. For example,
-`fmt.Printf` will probably be in-lined because it's really a small wrapper
+be overridden. Inline functions are a frequent culprit. For example,
+`fmt.Printf` will probably be inlined because it's really a small wrapper
 around `fmt.Fprintf`. If you disassemble a call to it you'll see something like
 this:
 
@@ -213,8 +213,8 @@ TEXT main.main(SB) /home/user/dev/gofuncs/main.go
   main.go:14            0x4999a0                e8bb89fdff              CALL runtime.morestack_noctxt.abi0(SB)
 ```
 
-The instructions from `print.go` are the result of in-lining. The function
-definition of `fmt.Printf` exists if you get a pointer to it, but if won't
+The instructions from `print.go` are the result of inlining. The function
+definition of `fmt.Printf` exists if you get a pointer to it, but it won't
 matter if you insert a `JMP` there because, unless you call it through a
 function pointer, nothing uses it.
 
@@ -276,10 +276,10 @@ If this worked perfectly the output would be `4`. But it actually prints
 `doubleCounter.A` is at the same location as the high 32-bits of `counter.A` so
 the output is `2<<32 + 2`, or `8589934594`.
 
-This example is admittedly a contrived, but you can imagine the resulting crash
-if these were pointers or the chaos created if these weren't simple integers
-but larger structs. Also consider what would happen if `doubleCounter` were
-instead:
+This example is admittedly a contrived example, but you can imagine the
+resulting crash if these were pointers or the chaos created if these weren't
+simple integers but larger structs. Also consider what would happen if
+`doubleCounter` were instead:
 
 ```Go
 type doubleCounter struct {
@@ -288,7 +288,7 @@ type doubleCounter struct {
 }
 ```
 
-Now it's adding two to some portion of memory immediately our instance of
+Now it's adding two to some portion of memory immediately after our instance of
 `counter`. Maybe it harmlessly updates some padding, maybe it corrupts the heap
 or overwrites an unrelated variable on the stack. Who knows exactly? But I do
 know you can expect some awful bugs. The only potentially safe way to override
@@ -301,7 +301,7 @@ you'll probably create bugs, but it can often be done.
 If you really must do this, I made a [package][6] to wrap this insidious code
 in a friendly interface. As of right now, it only works on Linux/Unix and
 amd64. For all the reasons above (and a few I didn't cover), I can't recommend
-using it. But it's fun to hack on and PR's are welcome.
+using it. But it's fun to hack on and PRs are welcome.
 
 [1]: https://gist.github.com/pboyd/8b211023ade6db2010202139d80a139c
 [2]: https://gist.github.com/pboyd/1e1018de131e0f27a3bef1f377952c2e#file-redefine_func_amd64-go
