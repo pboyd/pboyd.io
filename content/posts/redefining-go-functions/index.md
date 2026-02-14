@@ -176,18 +176,16 @@ $ go build -o main && ./main
 
 There you go. It's 5PM. It's always 5PM.
 
-[Here's the full source code.][2]
+[Full source code][2] for Linux/Unix on AMD64.
 
-If you're on ARM64, you'll need [this version][3]. Aside from different
+If you're running Linux/Unix on ARM64, you'll need [this version][3]. Aside from different
 instructions, ARM also requires clearing the instruction cache. (I've only
 tested the ARM64 version on a Raspberry Pi 4 running Linux. I _think_ it will
 work for Darwin on Apple silicon but I don't have hardware to test it&mdash;if you
 try it, let me know how it goes.)
 
-If you're on Windows, you won't have `mprotect`. Supposedly
-[`VirtualProtect`][4] is equivalent (also see the wrapper in
-[golang.org/x/sys/windows][5]). If you get it working on Windows, send me a
-Gist and I'll gladly link to it here.
+If you're running Windows on AMD64, use [this version][8]. The only difference from the
+Linux/Unix version is that `mprotect` is replaced with [`VirtualProtect`][4].
 
 ## The problems
 
@@ -313,6 +311,6 @@ recommend using it. But it's fun to hack on and PRs are welcome.
 [2]: https://gist.github.com/pboyd/1e1018de131e0f27a3bef1f377952c2e#file-redefine_func_amd64-go
 [3]: https://gist.github.com/pboyd/1e1018de131e0f27a3bef1f377952c2e#file-redefine_func_arm64-go
 [4]: https://learn.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualprotect
-[5]: https://pkg.go.dev/golang.org/x/sys@v0.41.0/windows#VirtualProtect
 [6]: https://github.com/pboyd/redefine
 [7]: https://en.wikipedia.org/wiki/Memoization
+[8]: https://gist.github.com/pboyd/1e1018de131e0f27a3bef1f377952c2e#file-redefine_func_amd64_windows-go
