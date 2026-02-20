@@ -136,13 +136,27 @@ resource "aws_cloudfront_function" "url_rewrite" {
       var request = event.request;
       var uri = request.uri;
 
-      // Check if URI ends with '/'
+      // Redirect explicit index.html to canonical directory URL (/posts/foo/index.html -> /posts/foo/)
+      if (uri.endsWith('/index.html')) {
+        return {
+          statusCode: 301,
+          statusDescription: 'Moved Permanently',
+          headers: { location: { value: uri.slice(0, -'index.html'.length) } }
+        };
+      }
+
+      // Redirect no-trailing-slash paths to canonical form (/posts/foo -> /posts/foo/)
+      if (!uri.includes('.') && !uri.endsWith('/')) {
+        return {
+          statusCode: 301,
+          statusDescription: 'Moved Permanently',
+          headers: { location: { value: uri + '/' } }
+        };
+      }
+
+      // Rewrite canonical directory URLs to index.html for S3 (/posts/foo/ -> /posts/foo/index.html)
       if (uri.endsWith('/')) {
         request.uri += 'index.html';
-      }
-      // Check if URI has no extension (likely a directory)
-      else if (!uri.includes('.')) {
-        request.uri += '/index.html';
       }
 
       return request;
