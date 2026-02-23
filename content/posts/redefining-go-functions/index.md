@@ -178,11 +178,10 @@ There you go. It's 5PM. It's always 5PM.
 
 [Full source code][2] for Linux/Unix on AMD64.
 
-If you're running Linux/Unix on ARM64, you'll need [this version][3]. Aside from different
-instructions, ARM also requires clearing the instruction cache. (I've only
-tested the ARM64 version on a Raspberry Pi 4 running Linux. I _think_ it will
-work for Darwin on Apple silicon but I don't have hardware to test it&mdash;if you
-try it, let me know how it goes.)
+If you're running Linux/Unix on ARM64, you'll need [this version][3]. Aside
+from different instructions, ARM also requires clearing the instruction cache.
+(Note this will not work for Darwin on Apple silicon. There's probably a way,
+but I lack the hardware to find it at the moment.)
 
 If you're running Windows on AMD64, use [this version][8]. The only difference from the
 Linux/Unix version is that `mprotect` is replaced with [`VirtualProtect`][4].
