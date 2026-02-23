@@ -1,5 +1,12 @@
 <ul class="post-list">
-  {{ with site.GetPage "/posts/how-to-walk-safely-near-buses/" }}
+  {{ with site.GetPage "/posts/redefining-go-functions/" }}
+    <li>
+      {{ $dateMachine := .Date | time.Format "2006-01-02T15:04:05-07:00" }}
+      {{ $dateDisplay := .Date | time.Format "2006-01-02"}}
+      <time datetime="{{ $dateMachine }}">{{ $dateDisplay }}</time><a class="title" href="{{ .Permalink }}">{{ .Title }}</a>
+    </li>
+  {{ end }}
+  {{ with site.GetPage "/posts/redefining-go-functions" }}
     <li>
       {{ $dateMachine := .Date | time.Format "2006-01-02T15:04:05-07:00" }}
       {{ $dateDisplay := .Date | time.Format "2006-01-02"}}
@@ -13,7 +20,7 @@
       <time datetime="{{ $dateMachine }}">{{ $dateDisplay }}</time><a class="title" href="{{ .Permalink }}">{{ .Title }}</a>
     </li>
   {{ end }}
-  {{ with site.GetPage "/posts/coming-to-terms-with-ai-coding-tools/" }}
+  {{ with site.GetPage "/posts/how-to-walk-safely-near-buses/" }}
     <li>
       {{ $dateMachine := .Date | time.Format "2006-01-02T15:04:05-07:00" }}
       {{ $dateDisplay := .Date | time.Format "2006-01-02"}}
@@ -21,13 +28,6 @@
     </li>
   {{ end }}
   {{ with site.GetPage "/posts/securing-a-linux-vm/" }}
-    <li>
-      {{ $dateMachine := .Date | time.Format "2006-01-02T15:04:05-07:00" }}
-      {{ $dateDisplay := .Date | time.Format "2006-01-02"}}
-      <time datetime="{{ $dateMachine }}">{{ $dateDisplay }}</time><a class="title" href="{{ .Permalink }}">{{ .Title }}</a>
-    </li>
-  {{ end }}
-  {{ with site.GetPage "/posts/at-company-we-are-family/" }}
     <li>
       {{ $dateMachine := .Date | time.Format "2006-01-02T15:04:05-07:00" }}
       {{ $dateDisplay := .Date | time.Format "2006-01-02"}}
