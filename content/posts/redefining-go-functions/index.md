@@ -66,8 +66,9 @@ TEXT time.Now(SB) /opt/go1.25.5/src/time/time.go
 ```
 
 The actual addresses may be different for you, but the address from the program
-output will match the instruction address in the disassembler output. That's
-because Go function pointers point to the function's entry point.
+output will match the instruction address in the disassembler output (**UPDATE:**
+this is not entirely true! When `--buildmode=pie` the addresses won't match).
+That's because Go function pointers point to the function's entry point.
 
 We don't know the length of the function, but we can guess that it's at least 8
 bytes and get a slice based on that:
