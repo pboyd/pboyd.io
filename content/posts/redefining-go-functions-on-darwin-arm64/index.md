@@ -48,11 +48,11 @@ The code for this program is [on Github][4]. It's a bit lengthy, so I'm only pas
 
 ## The problem
 
-In general, the problem is that Darwn on arm64 doesn't allow a program to modify it's code. It's locked down pretty tight. I couldn't find a way with `mprotect` (or it's cousin on Darwin, `vm_protect`) to bypass it.
+In general, the problem is that Darwin on arm64 doesn't allow a program to modify its code. It's locked down pretty tight. I couldn't find a way with `mprotect` (or its cousin on Darwin, `vm_protect`) to bypass it.
 
 They left one door open but only a crack. `mmap` takes a `MAP_JIT` flag with an accompanying per-thread setting to switch all `MAP_JIT` mappings in the program from read-execute to read-write. I assume from the name this was meant to facilitate just-in-time compilation for interpreted languages and those with machine independent bytecode, like Java.
 
-Of course, `MAP_JIT` is not directly useful because a Go program's text segment is not allocated with `MAP_JIT`. The OS allocates it read-execute without that flag and my attempts to remap it were soundly defeated. What we can do, however, is make a new a whole new text segment with `MAP_JIT` and then execute the rest of the program from that new section which we can modify.
+Of course, `MAP_JIT` is not directly useful because a Go program's text segment is not allocated with `MAP_JIT`. The OS allocates it read-execute without that flag and my attempts to remap it were soundly defeated. What we can do, however, is make a whole new text segment with `MAP_JIT` and then execute the rest of the program from that new section which we can modify.
 
 ## Duplicating the code
 
@@ -115,7 +115,7 @@ func duplicateText() (uintptr, error) {
 }
 ```
 
-The `mmap` call gets read-write-execute permissions because there's no point bothering with anything less. Apple has its own mechanism with `pthread_jit_write_protect` and layering Unix memory protections on top is unnecessary. The [`JITWriteStart` and `JITWritEnd`][6] calls are just cgo wrappers around `pthread_jit_write_protect`.
+The `mmap` call gets read-write-execute permissions because there's no point bothering with anything less. Apple has its own mechanism with `pthread_jit_write_protect_np` and layering Unix memory protections on top is unnecessary. The [`JITWriteStart` and `JITWriteEnd`][6] calls are just cgo wrappers around `pthread_jit_write_protect_np`.
 
 The returned value from this function is the `offset` to add to an address in the old text segment to get the equivalent address in the new text segment. 
 
@@ -291,7 +291,7 @@ Arm uses register `x29` as the frame pointer (`fp`). Go's function preamble stor
 
 Back to `BL`. Before it jumps, it stores the return address (the instruction immediately following the `BL`) in the link register (`lr`). At the end of the subroutine, it can call `RET` to execute a jump back to the address in `lr`.
 
-`lr` though only holds one value, so Go's function preamble pushes `lr` onto the stack, so it can be popped off right before before `RET`. This is stored right after the `fp`. The stack looks like this:
+`lr` though only holds one value, so Go's function preamble pushes `lr` onto the stack, so it can be popped off right before `RET`. This is stored right after the `fp`. The stack looks like this:
 
 ```
 -------------------
@@ -357,7 +357,7 @@ func main() {
 
 ## Patching functions
 
-With the preliminaries out of the way, all that's left is actually patching a function. That's tricky though, because our program is not running from our `MAP_JIT` text segment, and `pthread_jit_write_protect(0)` switches the thread from having read-execute permissions to read-write permissions. In other words, the thread that writes can't itself be executing from `MAP_JIT` code. The simplest way I know to solve that is to switch back to the original text section when updating the code.
+With the preliminaries out of the way, all that's left is actually patching a function. That's tricky though, because our program now runs from a `MAP_JIT` segment, and `pthread_jit_write_protect_np(0)` switches the thread from having read-execute permissions to read-write permissions. In other words, the thread that writes can't itself be executing from `MAP_JIT` memory. The simplest way I know to solve that is to switch back to the original text section when updating the code.
 
 Pull the write instruction code into a function and access it through a function pointer:
 
