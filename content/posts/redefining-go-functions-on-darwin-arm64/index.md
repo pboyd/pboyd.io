@@ -1,10 +1,10 @@
 ---
-date: 2026-03-21T06:51:31-04:00
+date: 2026-03-23T00:00:00-04:00
 draft: false
 title: Redefining Go Functions on Mac OS
 type: post
 ---
-I recently wrote about [redefining Go functions][1], which was mostly about Linux on amd64. But I ported it to arm64, tested it on Linux, and figured it would work on Darwin/arm64 too. I didn't have a way to test it, so I said:
+I recently wrote about [redefining Go functions][1], which was mostly about Linux on amd64. But I ported it to arm64, tested it on Linux, and figured it would work on Darwin/arm64 too. Lacking a way to test it, I said:
 
 > I _think_ it will work for Darwin on Apple silicon
 
@@ -47,9 +47,9 @@ This post explains how it works. The code for this program is [on Github][4]. It
 
 ## How Apple broke `mprotect`
 
-The problem is that Darwin on arm64 doesn't allow a program to modify its code. Apple locked it down tight. `mprotect`, and its Darwin cousin `mach_vm_protect`, block all attempts. `mmap`, `mach_vm_allocate`, and `mach_vm_remap` prevent overwriting the text segment. Everything I tried failed, and I eventually gave up on the idea of modifying the text segment itself.
+The problem is that Darwin on arm64 doesn't allow a program to modify its code. Apple locked it down tight. `mprotect`, and its Darwin cousin `mach_vm_protect`, block all attempts. `mmap`, `mach_vm_allocate`, and `mach_vm_remap` prevent overwriting the text segment. Everything I tried failed, and I eventually abandoned modifying the text segment itself.
 
-Apple left one door open for self-modifying code, and then only a crack. `mmap` takes a `MAP_JIT` flag with an accompanying per-thread setting to switch all `MAP_JIT` mappings in the program from read-execute to read-write. I assume it's meant for just-in-time compilation of interpreted languages and machine-independent bytecode. But `MAP_JIT` alone isn't enough because the text segment wasn't allocated with it initially, and we can't remap it to have `MAP_JIT`. For `MAP_JIT` to work we need a new memory map.
+Apple left one door open for self-modifying code: the `MAP_JIT` to `mmap`, when combined with `pthread_jit_write_protect_np`, allows switching all `MAP_JIT` mappings in the thread from read-execute to read-write. I assume it was a necessary concession for just-in-time compilation. `MAP_JIT` alone isn't enough because the text segment wasn't allocated with it initially, and we can't remap it to have `MAP_JIT`. For `MAP_JIT` to work we need a new memory map.
 
 The plan, then, is to copy the program's text segment to a new mapping with `MAP_JIT`, and then execute from that copy.
 
@@ -206,6 +206,8 @@ func fixADRP(code []byte, offset uintptr) {
 ```
 [source][8]
 
+`BL` (`CALL` in Go assembly) also takes a PC-relative address and would normally need the same adjustment. But since we copied the entire text segment those addresses point to their equivalent function in the copy.
+
 With that in place, our duplicated functions can use static data.
 
 The last major problem with our duplicated text segment only happens when there's a `panic`. If our test function were instead:
@@ -275,11 +277,11 @@ It has the original source code lines but with addresses from the new text segme
 
 ## Switching to the duplicate
 
-Now we have a functioning copy of the program text, but what good is that really? The program is still running from the original read-only text segment, not our read-write duplicate. There's a simple solution, but we need to take a detour to learn a little Arm assembly.
+Now we have a functioning copy of the program text, but what good is that really? The program is still running from the original read-only text segment, not our read-write duplicate. To solve this, we need to know two things about Arm assembly.
 
-First, on Arm, subroutines are called with the `BL` instruction. It does an unconditional branch (like `B`), and stores the return address in the link register (`lr`). The `RET` instruction jumps to whatever address in `lr`. There are two things to note about this: 1) if we change the address in `lr` we change where the program executes, and 2) `BL` takes a PC-relative address and, because we copied the entire text segment, once we start executing in the copy we'll stay in the copy.
+First, subroutine calls. On Arm, subroutines are called with the `BL` instruction. It does an unconditional branch (like `B`), and stores the return address in the link register (`lr`). The `RET` instruction jumps to whatever address in `lr`, so if we can update those `lr` addresses we can switch our program to run anything.
 
-Second, we need to talk about the stack. Each (non-trivial) function gets a stack frame, which exists from the address in the frame pointer (`fp`) to the stack pointer (`sp`). Arm uses register `x29` as frame pointer. Go's function preamble stores the original `fp` value on the stack before updating the address. So the stack frame, at its most basic, looks like this:
+Second, the stack. Each (non-trivial) function gets a stack frame, which exists from the address in the frame pointer (`fp`) to the stack pointer (`sp`). Arm uses register `x29` as frame pointer. Go's function preamble stores the original `fp` value on the stack before updating the address. So the stack frame, at its most basic, looks like this:
 
 ```
 -------------------
@@ -334,7 +336,7 @@ for f := getFrame(); f != nil; f = f.next {
 }
 ```
 
-Unfortunately, the call stack is only a single goroutine. But once we're running from the duplicate text any new goroutines will also be in the duplicate. So it works best if the main goroutine is switched to the duplicate early, before any other goroutines are started.
+Unfortunately, the call stack is only a single goroutine. But once we're running from the duplicate text any new goroutines will also be in the duplicate. To be most effective, the main goroutine should be switched early, before any other goroutines are started.
 
 The major failing of this approach is function pointers. For instance,
 
@@ -361,8 +363,6 @@ func main() {
 
 With the preliminaries out of the way, all that's left is actually patching a function. Unfortunately, `pthread_jit_write_protect_np(0)` switches the thread from having read-execute permissions on `MAP_JIT` memory to read-write permissions. In other words, the thread that writes can't itself be executing from `MAP_JIT` memory. The simplest solution I've found is to switch back to the original text section when updating the code.
 
-So we first pull the code to write the instruction into a separate function, and then access it through a function pointer so we can easily update its address.
-
 ```Go
 var writeB func([]byte, int32) = _writeB
 
@@ -382,7 +382,7 @@ func _writeB(buf []byte, relAddr int32) {
 }
 ```
 
-Then, after we patch function pointers, we switch the address `writeB` so it points back to the original text segment. This uses the same `offsetFunc` function we used above for testing:
+Then, after we patch function pointers, we switch the address `writeB` so it points back to the original text segment (`offsetFunc` was defined in the first section of this post).
 
 ```Go
 writeB = offsetFunc(writeB, -offset)
@@ -390,7 +390,7 @@ writeB = offsetFunc(writeB, -offset)
 
 ---
 
-That's the only way I found to monkey patch Go functions on a recent Mac. I'm not sure there's any practical takeaway from any of that, but it was a lot of fun to work out.
+With that, we've reached the end. That's the only way I found to monkey patch Go functions on a recent Mac. It works in all scenarios that I've thought to test, but given the number and severity of the bugs encountered I need to discourage you from implementing any of these techniques for anything serious (unless you work for [bytedance][11], perhaps). This has been fun, so I support I should thank Apple computer for making it all possible: without you, my original program would Just Work.
 
 [1]: /posts/redefining-go-functions/
 [2]: https://github.com/pboyd/redefine/
@@ -402,3 +402,4 @@ That's the only way I found to monkey patch Go functions on a recent Mac. I'm no
 [8]: https://github.com/pboyd/redefine-macos-poc/blob/main/redefine.go#L175-L211
 [9]: https://github.com/pboyd/redefine-macos-poc/blob/main/redefine.go#L111-L164
 [10]: https://github.com/pboyd/redefine-macos-poc/blob/main/redefine.go#L213-L264
+[11]: https://github.com/bytedance/sonic/tree/main/loader
