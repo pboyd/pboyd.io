@@ -177,12 +177,11 @@ $ go build -o main && ./main
 
 There you go. It's 5PM. It's always 5PM.
 
-[Full source code][2] for Linux/Unix on AMD64.
+[Full source code][2] for Linux/Unix on AMD64 (including Intel-based Darwin).
 
-If you're running Linux/Unix on ARM64, you'll need [this version][3]. Aside
-from different instructions, ARM also requires clearing the instruction cache.
-(Note this will not work for Darwin on Apple silicon. There's probably a way,
-but I lack the hardware to find it at the moment.)
+If you're running Linux/Unix on ARM64 (excluding Darwin), you'll need [this
+version][3]. Aside from different instructions, ARM also requires clearing the
+instruction cache. For Darwin on Apple silicon, see the [follow up][9].
 
 If you're running Windows on AMD64, use [this version][8]. The only difference from the
 Linux/Unix version is that `mprotect` is replaced with [`VirtualProtect`][4].
@@ -314,3 +313,4 @@ recommend using it. But it's fun to hack on and PRs are welcome.
 [6]: https://github.com/pboyd/redefine
 [7]: https://en.wikipedia.org/wiki/Memoization
 [8]: https://gist.github.com/pboyd/1e1018de131e0f27a3bef1f377952c2e#file-redefine_func_amd64_windows-go
+[9]: /posts/redefining-go-functions-on-macos/
