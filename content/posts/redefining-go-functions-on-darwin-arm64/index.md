@@ -8,9 +8,9 @@ I recently wrote about [redefining Go functions][1], which was mostly about Linu
 
 > I _think_ it will work for Darwin on Apple silicon
 
-That may be the most naïve thing I've ever written. But honestly, I thought it would work. The instruction encoding is the same as arm64 on any other OS, and the system calls are the same as Intel-based Macs. Why shouldn't it work?
+That may be the most naïve thing I've ever written, but I thought it would work. The instruction encoding is the same as arm64 on any other OS, and the system calls are the same as those on Intel-based Macs. Why shouldn't it work?
 
-I eventually had a chance to test it with GitHub actions while porting the [package][2] that post was based on to arm64. Unfortunately, my `mprotect` calls kept failing with no apparent solution. Worse still, I could only troubleshoot it through CI. So I gave up and added a note saying that Darwin/arm64 doesn't work and figured that would be that. It bothered me, but what was I going to do? Buy a used Mac Mini, a [book][3] on ARM assembly, and then spend all my spare time for a few weeks porting a dumb joke program about an Alan Jackson song to a platform I don't even want to use? Well, yes, apparently that's what I was going to do.
+While porting the [package][2] the original post was based on to arm64, I had a chance to test it and found that my `mprotect` calls always failed. I couldn't find a simple solution, and since I could only test it through GitHub actions, I gave up. I added a note saying that Darwin/arm64 doesn't work and figured that would be that. Leaving it unfinished bothered me, but what was I going to do? Buy a used Mac Mini, a [book][3] on ARM assembly, and then spend all my spare time for a few weeks porting a dumb joke program about an Alan Jackson song to a platform I don't even want to use? Well, yes, apparently that's what I was going to do.
 
 ```Go
 package main
@@ -43,19 +43,19 @@ $ go run .
 5:00PM
 ```
 
-This post explains how it works. The code for this program is [on Github][4]. It's lengthy, so I'm only pasting the highlights in this post.
+This post explains how it works. The code for this program is [on GitHub][4]. It's lengthy, so I'm only pasting the highlights here.
 
 ## How Apple broke `mprotect`
 
-The problem is that Darwin on arm64 doesn't allow a program to modify its code. Apple locked it down tight. `mprotect`, and its Darwin cousin `mach_vm_protect`, block all attempts. `mmap`, `mach_vm_allocate`, and `mach_vm_remap` prevent overwriting the text segment. Everything I tried failed, and I eventually abandoned modifying the text segment itself.
+On other platforms, we only need to call `mprotect` for read-write-execute permissions on the program's text segment (i.e. the memory segment with the executable code). The problem is that for Darwin on arm64, Apple locked it down tight. `mprotect`, `mmap`, and their Darwin cousins (`mach_vm_protect`, `mach_vm_allocate`, and `mach_vm_remap`) block every attempt to get read-write access to the text segment. I tried a lot of things, but they all failed, so I eventually abandoned modifying the text segment itself (of course, if you know of something I overlooked, please share).
 
-Apple left one door open for self-modifying code: the `MAP_JIT` to `mmap`, when combined with `pthread_jit_write_protect_np`, allows switching all `MAP_JIT` mappings in the thread from read-execute to read-write. I assume it was a necessary concession for just-in-time compilation. `MAP_JIT` alone isn't enough because the text segment wasn't allocated with it initially, and we can't remap it to have `MAP_JIT`. For `MAP_JIT` to work we need a new memory map.
+Apple did leave one door open for self-modifying code: the `MAP_JIT` flag to `mmap`. When combined with the non-standard function `pthread_jit_write_protect_np`, a thread can swap between read-execute and read-write permissions to `MAP_JIT` memory. It's not much to work with, because our text segment isn't allocated with `MAP_JIT` and we can't remap it. To use it, we have to allocate a new text segment.
 
-The plan, then, is to copy the program's text segment to a new mapping with `MAP_JIT`, and then execute from that copy.
+The plan, then, is to copy the program's text segment to a new mapping with `MAP_JIT`, and execute from that copy.
 
 ## Duplicating the code
 
-Before we can copy the text segment, we need to find it. C provides `extern` variables for `text` and `etext`, but Go--for reasons I cannot fathom--doesn't give this information up easily. But Go's runtime has this information internally and we can get a copy of it through `linkname`:
+Before we can copy the text segment, we need to find it. C provides `extern` variables for `text` and `etext`, but Go&mdash;for reasons I cannot fathom&mdash;doesn't give this information easily. But Go's runtime has this information internally, and we can get a copy of it through `linkname`:
 
 ```go
 //go:linkname lastmoduledatap runtime.lastmoduledatap
@@ -81,9 +81,9 @@ type moduledata struct {
 ```
 [source][5]
 
-`linkname` requests the linker to bind that variable and name together, so we get a pointer to Go's internal `moduledata` struct. There's no published definition of that struct, so we have to copy the definition from Go's source code. The version above is from Go 1.26, which differed a little from what was in Go 1.25. This is brittle, and Go could break it tomorrow, but it's good enough for today.
+`linkname` binds that variable to Go's internal `moduledata`. There's no published definition of that struct, so we have to copy the definition from Go's source code. The version above is from Go 1.26, which differed slightly from 1.25. This is brittle, and Go could break it tomorrow, but it's good enough for today.
 
-The text segment runs from the address in `text` to `etext` ("end text"), but we actually need to copy from `text` to `rodata` because, as I discovered the hard way, the linker places cgo stubs between `etext` and `rodata`.
+The text segment runs from the address in `text` to `etext` ("end text"), but we need to copy from `text` to `rodata` because, as I discovered the hard way, the linker places cgo stubs between `etext` and `rodata`.
 
 Now we can allocate a new text segment and copy all the machine code:
 
@@ -116,11 +116,11 @@ func duplicateText() (uintptr, error) {
 }
 ```
 
-The `mmap` call gets read-write-execute permissions because there's no point bothering with anything less. Apple has its own mechanism with `pthread_jit_write_protect_np`, so layering the standard Unix memory protections on top is unnecessary. The [`JITWriteStart` and `JITWriteEnd`][6] calls are thin cgo wrappers around `pthread_jit_write_protect_np`.
+The `mmap` call gets read-write-execute permissions because Apple has its own protection mechanism with `pthread_jit_write_protect_np`; layering the standard Unix memory protections on top is unnecessary. The [`JITWriteStart` and `JITWriteEnd`][6] calls are thin cgo wrappers around `pthread_jit_write_protect_np`.
 
-The returned value from this function is the `offset` to add to an address in the old text segment to get the equivalent address in the new text segment.
+This function returns the offset to add to an address in the old text segment to get the equivalent address in the new text segment.
 
-With a little pointer tomfoolery we can use the offset to call simple functions that we've copied:
+With a little pointer tomfoolery, we can use the offset to call simple functions that we've copied:
 
 ```Go
 func main() {
@@ -172,7 +172,7 @@ MUL R1, R0, R0                       // mul x0, x0, x1
 RET                                  // ret
 ```
 
-That `ADRP` instruction loads the address of the memory page containing `multiplier`. But `ADRP` is relative to the address of the instruction (stored in the program counter, or PC, register). Now that we've moved the code, `pc+0xf5000` is probably pointing at unallocated space and therefore the program crashes. Or it's pointing at allocated memory, which is unlikely to hold the value `2`, so you get the wrong answer.
+That `ADRP` instruction loads the address of the memory page containing `multiplier`. But `ADRP` is relative to the address of the instruction (stored in the program counter, or PC, register). Now that we've moved the code, `pc+0xf5000` is probably pointing at unallocated space, so the program crashes. Or it's pointing at allocated memory, which is unlikely to hold the value `2`, so you get the wrong answer.
 
 To solve that problem, we need to walk through the copied text segment and update the arguments to the `ADRP` instructions to point to the same data relative to the new address. [`golang.org/x/arch/arm64/arm64asm`][7] makes parsing (although not encoding) the instructions easy.
 
@@ -206,7 +206,7 @@ func fixADRP(code []byte, offset uintptr) {
 ```
 [source][8]
 
-`BL` (`CALL` in Go assembly) also takes a PC-relative address and would normally need the same adjustment. But since we copied the entire text segment those addresses point to their equivalent function in the copy.
+`BL` (`CALL` in Go assembly) also takes a PC-relative address and would normally need the same adjustment. But since we copied the entire text segment, those addresses point to their equivalent function in the copy.
 
 With that in place, our duplicated functions can use static data.
 
@@ -220,7 +220,7 @@ func testFunc(x int) int {
 }
 ```
 
-As you probably expect, it crashes, but instead of a familiar `divide by 0` it's `unknown pc`. The processor gladly executes instructions from our new text segment, but the Go runtime doesn't know about it. For that, we need to register a new "module":
+As you probably expect, it crashes, but instead of a familiar `divide by 0` it's `unknown pc`. The processor gladly executes instructions from our new text segment, but the Go runtime doesn't know what's at those addresses. To fix it, we need to register a new "module":
 
 ```Go
 var newModdata moduledata
@@ -254,7 +254,7 @@ func duplicateText() (uintptr, error) {
 }
 ```
 
-Our module shares the same data segments as the original one, so we copy that one and update the text addresses. The module data is stored in a singly linked list, so we insert our copy as `next` on `lastmoduledatap`. It's important that our moduledata is statically allocated and not on the heap to prevent GC collection. Once that's in place we get a much more normal stack trace:
+Our module shares the same data segments as the original one, so we copy that one and update the text addresses. The module data is stored in a singly linked list, so we insert our copy as `next` on `lastmoduledatap`. It's important that our moduledata is statically allocated and not on the heap to prevent GC collection. Once that's in place, we get a much more normal stack trace:
 
 ```
 panic: runtime error: integer divide by zero
@@ -277,11 +277,11 @@ It has the original source code lines but with addresses from the new text segme
 
 ## Switching to the duplicate
 
-Now we have a functioning copy of the program text, but what good is that really? The program is still running from the original read-only text segment, not our read-write duplicate. To solve this, we need to know two things about Arm assembly.
+Now we have a functioning copy of the program text, but what good is that? The program is still running from the original read-only text segment, not our read-write duplicate. To solve this, we need to know two things about Arm assembly.
 
-First, subroutine calls. On Arm, subroutines are called with the `BL` instruction. It does an unconditional branch (like `B`), and stores the return address in the link register (`lr`). The `RET` instruction jumps to whatever address in `lr`, so if we can update those `lr` addresses we can switch our program to run anything.
+First, subroutine calls. On Arm, subroutines are called with the `BL` instruction. It does an unconditional branch (like `B`), and stores the return address in the link register (`lr`). The `RET` instruction jumps to the address in `lr`, so if we can update those `lr` addresses, we can switch our program to run anything.
 
-Second, the stack. Each (non-trivial) function gets a stack frame, which exists from the address in the frame pointer (`fp`) to the stack pointer (`sp`). Arm uses register `x29` as frame pointer. Go's function preamble stores the original `fp` value on the stack before updating the address. So the stack frame, at its most basic, looks like this:
+Second, the stack. Each (non-trivial) function gets a stack frame, which exists from the address in the frame pointer (`fp`) to the stack pointer (`sp`). Arm uses register `x29` as frame pointer. Go's function preamble stores the original `fp` value on the stack before setting `fp` to its new value. So the stack frame, at its most basic, looks like this:
 
 ```
 -------------------
@@ -293,7 +293,7 @@ Second, the stack. Each (non-trivial) function gets a stack frame, which exists 
 -------------------
 ```
 
-Because the link register only holds one value, it has to be saved somewhere before making a function call, so `lr` is normally pushed onto the stack immediately after the frame pointer. Go follows this convention as well. A normal stack frame then, looks like this:
+Because the link register only holds one value, it must be saved before making function calls. The normal convention, which Go follows, is to push `lr` onto the stack immediately after the frame pointer:
 
 ```
 -------------------
@@ -307,7 +307,7 @@ Because the link register only holds one value, it has to be saved somewhere bef
 -------------------
 ```
 
-If we get the frame pointer, we can walk back up the stack and shift the return addresses to our copy. We need a bit of assembly code to get the `fp` value:
+If we get the frame pointer, we can walk back up the stack and shift the return addresses to our copy. We need a small assembly function to get the `fp` value:
 
 ```assembly
 TEXT ·getFrame(SB),NOSPLIT,$0-8
@@ -326,7 +326,7 @@ type frame struct {
 func getFrame() *frame
 ```
 
-Then we can adjust return values all the way back up the call stack:
+Then we can adjust return addresses all the way back up the call stack:
 
 ```Go
 for f := getFrame(); f != nil; f = f.next {
@@ -336,9 +336,9 @@ for f := getFrame(); f != nil; f = f.next {
 }
 ```
 
-Unfortunately, the call stack is only a single goroutine. But once we're running from the duplicate text any new goroutines will also be in the duplicate. To be most effective, the main goroutine should be switched early, before any other goroutines are started.
+Unfortunately, the call stack only belongs to a single goroutine. But once we're running from the duplicate text, any new goroutines will also be in the duplicate. To be most effective, switch the main goroutine early, before starting any other goroutines.
 
-The major failing of this approach is function pointers. For instance,
+The major failing of this approach is function pointers.
 
 ```Go
 func main() {
@@ -361,7 +361,7 @@ func main() {
 
 ## Patching functions
 
-With the preliminaries out of the way, all that's left is actually patching a function. Unfortunately, `pthread_jit_write_protect_np(0)` switches the thread from having read-execute permissions on `MAP_JIT` memory to read-write permissions. In other words, the thread that writes can't itself be executing from `MAP_JIT` memory. The simplest solution I've found is to switch back to the original text section when updating the code.
+With the preliminaries out of the way, we can finally patch a function. Unfortunately, `pthread_jit_write_protect_np(0)` switches the thread from having read-execute permissions on `MAP_JIT` memory to read-write permissions. In other words, the thread that writes can't itself be executing from `MAP_JIT` memory. The simplest solution I've found is to switch back to the original text section when updating the code.
 
 ```Go
 var writeB func([]byte, int32) = _writeB
@@ -390,7 +390,7 @@ writeB = offsetFunc(writeB, -offset)
 
 ---
 
-With that, we've reached the end. That's the only way I found to monkey patch Go functions on a recent Mac. It works in all scenarios that I've thought to test, but given the number and severity of the bugs encountered I need to discourage you from implementing any of these techniques for anything serious (unless you work for [bytedance][11], perhaps). This has been fun, so I support I should thank Apple computer for making it all possible: without you, my original program would Just Work.
+With that, we've reached the end. That's the only way I found to monkey patch Go functions on a recent Mac. It works in all scenarios that I've thought to test, but given the number and severity of the bugs encountered, I've surely missed something. Don't use these techniques for anything serious (unless you work for [bytedance][11], perhaps). I suppose I should close by thanking Apple for making this all possible: without you, my original program would _just work_.
 
 [1]: /posts/redefining-go-functions/
 [2]: https://github.com/pboyd/redefine/
