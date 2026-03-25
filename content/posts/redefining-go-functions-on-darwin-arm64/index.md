@@ -1,49 +1,54 @@
 ---
 date: 2026-03-23T00:00:00-04:00
+lastmod: 2026-03-24T20:49:00-04:00
 draft: false
 title: Redefining Go Functions on Mac OS
 type: post
 ---
-I recently wrote about [redefining Go functions][1], which was mostly about Linux on amd64. But I ported it to arm64, tested it on Linux, and figured it would work on Darwin/arm64 too. Lacking a way to test it, I said:
+I've been building a [package][2] to redefine Go functions at runtime (_monkey patching_, if you like). I started with amd64, but since Macs are such a popular platform for developers, I wanted arm64 support. Lacking Apple hardware, I did the next best thing and ported it to Linux on arm64. That should be enough, right? When I ported the amd64 version to Intel-based Macs, I had to change a single CGO wrapper. Apple silicon should be about the same, right? If only.
 
-> I _think_ it will work for Darwin on Apple silicon
-
-That may be the most naïve thing I've ever written, but I thought it would work. The instruction encoding is the same as arm64 on any other OS, and the system calls are the same as those on Intel-based Macs. Why shouldn't it work?
-
-While porting the [package][2] the original post was based on to arm64, I had a chance to test it and found that my `mprotect` calls always failed. I couldn't find a simple solution, and since I could only test it through GitHub actions, I gave up. I added a note saying that Darwin/arm64 doesn't work and figured that would be that. Leaving it unfinished bothered me, but what was I going to do? Buy a used Mac Mini, a [book][3] on ARM assembly, and then spend all my spare time for a few weeks porting a dumb joke program about an Alan Jackson song to a platform I don't even want to use? Well, yes, apparently that's what I was going to do.
+The package works by calling `mprotect` to get write access to the program's text segment, then it replaces the beginning of a function's compiled code with a `JMP` or `B` instruction to the replacement function (see my [last post][1] for the details). It's unfit for serious programs, but we can use it for unserious ones:
 
 ```Go
 package main
 
 import (
         "fmt"
-        "os"
-        "time"
+        "log"
+        "strings"
+
+        "github.com/pboyd/redefine"
 )
 
-func myTimeNow() time.Time {
-        return time.Date(2026, 1, 30, 17, 0, 0, 0, time.FixedZone("Somewhere", 0))
-}
-
 func main() {
-        err := redefineFunc(time.Now, myTimeNow)
-        if err != nil {
-                fmt.Fprintf(os.Stderr, "redefineFunc failed: %v\n", err)
-                os.Exit(1)
-        }
+        redefine.Func(fmt.Appendf, func(b []byte, format string, v ...any) []byte {
+                orig := redefine.Original(fmt.Appendf)
 
-        fmt.Println(time.Now().Format(time.Kitchen))
+                b = orig(b, format, v...)
+
+                if strings.Contains(strings.ToLower(format), "spanish inquisition") {
+                        b = orig(b, "\n\nNOBODY EXPECTS THE SPANISH INQUISITION\n")
+                }
+
+                return b
+        })
+
+        log.Printf("I didn't expect a kind of Spanish Inquisition")
 }
 ```
 
+On Darwin/arm64, the `mprotect` calls always failed with `EACCES`. I thought the solution must be right there, only I couldn't find it. All I had to test with was GitHub actions and each attempt took a couple minutes. So I admitted defeat and added a note saying that Darwin/arm64 doesn't work and figured that would be that. Leaving it unfinished bothered me, but what was I going to do? Buy a used Mac Mini, a [book][3] on ARM assembly, and then spend all my spare time for a few weeks porting dumb joke programs to a platform I don't even use? Well, yes, apparently that's what I was going to do.
+
 ```
-$ uname -ms
-Darwin arm64
+$ uname -mv
+Darwin Kernel Version 25.3.0: Wed Jan 28 20:53:31 PST 2026; root:xnu-12377.91.3~2/RELEASE_ARM64_T8103 arm64
 $ go run .
-5:00PM
+2026/03/24 19:55:23 I didn't expect a kind of Spanish Inquisition
+
+NOBODY EXPECTS THE SPANISH INQUISITION
 ```
 
-This post explains how it works. The code for this program is [on GitHub][4]. It's lengthy, so I'm only pasting the highlights here.
+This post walks through a proof-of-concept implementation for redefining Go functions on Mac OS / Darwin on Arm64. You can get [full source code on GitHub][4]. It's lengthy, so I'm only pasting the highlights here.
 
 ## How Apple broke `mprotect`
 
