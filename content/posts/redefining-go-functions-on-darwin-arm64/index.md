@@ -1,10 +1,13 @@
 ---
 date: 2026-03-23T00:00:00-04:00
-lastmod: 2026-03-24T20:49:00-04:00
+lastmod: 2026-03-25T19:31:00-04:00
 draft: false
 title: Redefining Go Functions on Mac OS
 type: post
 ---
+
+_*UPDATE:* Disregard this post. These were fun hacks, but I found an approach that makes most of this irrelevant. I'll update this post later._
+
 I've been building a [package][2] to redefine Go functions at runtime (_monkey patching_, if you like). I started with amd64, but since Macs are such a popular platform for developers, I wanted arm64 support. Lacking Apple hardware, I did the next best thing and ported it to Linux on arm64. That should be enough, right? When I ported the amd64 version to Intel-based Macs, I had to change a single CGO wrapper. Apple silicon should be about the same, right? If only.
 
 The package works by calling `mprotect` to get write access to the program's text segment, then it replaces the beginning of a function's compiled code with a `JMP` or `B` instruction to the replacement function (see my [last post][1] for the details). It's unfit for serious programs, but we can use it for unserious ones:
