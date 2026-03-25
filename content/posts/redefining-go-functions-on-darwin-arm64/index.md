@@ -404,10 +404,10 @@ With that, we've reached the end. That's the only way I found to monkey patch Go
 [2]: https://github.com/pboyd/redefine/
 [3]: https://nostarch.com/art-arm-assembly-volume-1
 [4]: https://github.com/pboyd/redefine-macos-poc
-[5]: https://github.com/pboyd/redefine-macos-poc/blob/main/moddata_go226.go
-[6]: https://github.com/pboyd/redefine-macos-poc/blob/main/cgo/cgo.go#L24-L32
+[5]: https://github.com/pboyd/redefine-macos-poc/blob/fork-final/moddata_go226.go
+[6]: https://github.com/pboyd/redefine-macos-poc/blob/fork-final/cgo/cgo.go#L24-L32
 [7]: https://pkg.go.dev/golang.org/x/arch/arm64/arm64asm
-[8]: https://github.com/pboyd/redefine-macos-poc/blob/main/redefine.go#L178
-[9]: https://github.com/pboyd/redefine-macos-poc/blob/main/redefine.go#L111-L164
-[10]: https://github.com/pboyd/redefine-macos-poc/blob/main/redefine.go#L226
+[8]: https://github.com/pboyd/redefine-macos-poc/blob/fork-final/redefine.go#L178
+[9]: https://github.com/pboyd/redefine-macos-poc/blob/fork-final/redefine.go#L111-L164
+[10]: https://github.com/pboyd/redefine-macos-poc/blob/fork-final/redefine.go#L226
 [11]: https://github.com/bytedance/sonic/tree/main/loader
