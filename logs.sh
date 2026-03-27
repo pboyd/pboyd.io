@@ -76,9 +76,9 @@ raw_logs() {
     for f in "$LOGS_DIR"/*.gz; do
         # Extract date from filename (format: DISTID.YYYY-MM-DD-HH.hash.gz)
         local file_date
-        file_date=$(basename "$f" | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}' | head -1)
-
-        if [ -z "$file_date" ]; then
+        if [[ $f =~ ([0-9]{4}-[0-9]{2}-[0-9]{2}) ]]; then
+            file_date=${BASH_REMATCH[1]}
+        else
             continue
         fi
 
