@@ -26,7 +26,7 @@ So we have separate virtual memory allocations for writing and executing, but bo
 
 ## Duplicating the code
 
-The first step is the same as in the complicated version. We need start and end addresses of the text segment, which can get from Go's internal `moduledata` through `linkname`:
+The first step is the same as in the complicated version. We need start and end addresses of the text segment, which we can get from Go's internal `moduledata` through `linkname`:
 
 ```go
 //go:linkname lastmoduledatap runtime.lastmoduledatap
@@ -81,7 +81,7 @@ func getWritableText() (uintptr, error) {
 
 This is where I went wrong before. Apple will not permit `PROT_WRITE` and `PROT_EXEC` in the same mapping unless there's a `MAP_JIT` flag, so I asked `mmap` for a read-write-execute mapping and added `MAP_JIT`. That worked. But `MAP_JIT` regions have extra limitations which prevent the remap.
 
-Now that we have a copy of the text segment, we need to replace the original one. Apple provides `mach_vm_remap` for that, which we'll need to call through CGO. I've yet to find docs for `mach_vm_remap`, the [apparently official docs][3] only list the arguments, there's an [old page on mit.edu][5] for a similar function called `vm_remap`, and the rest I've had to piece together from the C header files. Here's a Go wrapper for `mach_vm_remap`:
+Now that we have a copy of the text segment, we need to replace the original one. Apple provides `mach_vm_remap` for that, which we'll need to call through cgo. I've yet to find docs for `mach_vm_remap`. Apple's [apparently official docs][3] only list the arguments, and there's an [old page on mit.edu][5] for a similar function called `vm_remap`. The rest I've had to piece together from the C header files. Here's a Go wrapper for `mach_vm_remap`:
 
 ```Go
 /*
@@ -125,7 +125,7 @@ func vmRemap(addr uintptr, srcAddr uintptr, size uintptr) (unsafe.Pointer, error
 }
 ```
 
-Which we call like this:
+We use the wrapper like this:
 
 ```Go
 	err = unix.Mprotect(dest, unix.PROT_READ|unix.PROT_EXEC)
@@ -141,7 +141,7 @@ Which we call like this:
 
 We call `mach_vm_remap` with a specific address and `VM_FLAGS_FIXED` and `VM_FLAGS_OVERWRITE` so that it will replace the existing text mapping. The 8th argument, `copy`, is `0`, indicating that we don't want to copy the contents, but remap the physical pages.
 
-The new mapping inherits the protections from the source page, so we need `mprotect` to mark it read-execute first. Otherwise, we lose access to execute anything in the program, which includes the code to handle the `SIGBUS` signal this generates. When your `SIGBUS` handler itself generates `SIGBUS`, you've got real problems.
+The new mapping inherits the protections from the source page, so we need `mprotect` to mark it read-execute first. Otherwise, we lose access to execute anything in the program, including the code to handle the `SIGBUS` signal this generates. When your `SIGBUS` handler itself generates `SIGBUS`, you've got real problems.
 
 The final step is to revert the prior `mprotect` call on the copy:
 
