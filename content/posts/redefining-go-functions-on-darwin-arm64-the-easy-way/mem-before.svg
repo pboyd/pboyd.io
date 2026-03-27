@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="270" font-family="monospace" font-size="14">
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#888"/>
+    </marker>
+    <clipPath id="vm-clip">
+      <rect x="20" y="20" width="220" height="230" rx="4"/>
+    </clipPath>
+    <clipPath id="pm-clip">
+      <rect x="360" y="20" width="220" height="230" rx="4"/>
+    </clipPath>
+  </defs>
+
+  <!-- Virtual Memory -->
+  <g clip-path="url(#vm-clip)">
+    <rect x="20" y="20" width="220" height="30" fill="#4a90d9"/>
+    <rect x="20" y="50" width="220" height="200" fill="#e8f0fe"/>
+    <line x1="20" y1="100" x2="240" y2="100" stroke="#4a90d9" stroke-width="1"/>
+    <line x1="20" y1="150" x2="240" y2="150" stroke="#4a90d9" stroke-width="1"/>
+    <line x1="20" y1="200" x2="240" y2="200" stroke="#4a90d9" stroke-width="1"/>
+  </g>
+  <rect x="20" y="20" width="220" height="230" fill="none" stroke="#4a90d9" stroke-width="1.5" rx="4"/>
+  <text x="130" y="40" text-anchor="middle" fill="white" font-weight="bold">VIRTUAL MEMORY</text>
+  <text x="35" y="80" fill="#222">text</text>
+  <text x="225" y="80" text-anchor="end" fill="#666" font-size="12">r-x</text>
+  <text x="35" y="130" fill="#222">data</text>
+  <text x="225" y="130" text-anchor="end" fill="#666" font-size="12">rw-</text>
+  <text x="35" y="180" fill="#222">bss</text>
+  <text x="225" y="180" text-anchor="end" fill="#666" font-size="12">rw-</text>
+  <text x="35" y="230" fill="#222">...</text>
+
+  <!-- Physical Memory -->
+  <g clip-path="url(#pm-clip)">
+    <rect x="360" y="20" width="220" height="30" fill="#5a9e6f"/>
+    <rect x="360" y="50" width="220" height="200" fill="#e8fef0"/>
+    <line x1="360" y1="100" x2="580" y2="100" stroke="#5a9e6f" stroke-width="1"/>
+    <line x1="360" y1="150" x2="580" y2="150" stroke="#5a9e6f" stroke-width="1"/>
+    <line x1="360" y1="200" x2="580" y2="200" stroke="#5a9e6f" stroke-width="1"/>
+  </g>
+  <rect x="360" y="20" width="220" height="230" fill="none" stroke="#5a9e6f" stroke-width="1.5" rx="4"/>
+  <text x="470" y="40" text-anchor="middle" fill="white" font-weight="bold">PHYSICAL MEMORY</text>
+  <text x="375" y="80" fill="#222">text</text>
+  <text x="375" y="130" fill="#222">data</text>
+  <text x="375" y="180" fill="#222">bss</text>
+  <text x="375" y="230" fill="#222">...</text>
+
+  <!-- Arrows -->
+  <line x1="240" y1="75" x2="358" y2="75" stroke="#888" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="240" y1="125" x2="358" y2="125" stroke="#888" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="240" y1="175" x2="358" y2="175" stroke="#888" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="240" y1="225" x2="358" y2="225" stroke="#888" stroke-width="1.5" marker-end="url(#arrow)"/>
+</svg>
