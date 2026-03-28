@@ -6,7 +6,7 @@ title: Redefining Go Functions on Mac OS
 type: post
 ---
 
-_*UPDATE:* After publishing this, I found a [much simpler way][12] to do the same thing. I'm leaving this post mostly unchanged. All its unnecessary insanity is intact, and this approach does work. But it's decidedly more complicated than necessary._
+**UPDATE:** _After publishing this, I found a [much simpler way][12] to do the same thing. I'm leaving this post mostly unchanged, with its unnecessary insanity is intact. Everything here still works, but it's more complicated than necessary._
 
 I've been building a [package][2] to redefine Go functions at runtime (_monkey patching_, if you like). I started with amd64, but since Macs are such a popular platform for developers, I wanted arm64 support. Lacking Apple hardware, I did the next best thing and ported it to Linux on arm64. That should be enough, right? When I ported the amd64 version to Intel-based Macs, I had to change a single CGO wrapper. Apple silicon should be about the same, right? If only.
 
@@ -55,7 +55,7 @@ This post walks through a proof-of-concept implementation for redefining Go func
 
 ## How Apple broke `mprotect`
 
-On other platforms, we only need to call `mprotect` for read-write-execute permissions on the program's text segment (i.e. the memory segment with the executable code). The problem is that for Darwin on arm64, Apple locked it down tight. `mprotect`, `mmap`, and their Darwin cousins (`mach_vm_protect`, `mach_vm_allocate`, and `mach_vm_remap`) block every attempt to get read-write access to the text segment. I tried a lot of things, but they all failed, so I eventually abandoned modifying the text segment itself (_*UPDATE*: [there is indeed a way][12]_).
+On other platforms, we only need to call `mprotect` for read-write-execute permissions on the program's text segment (i.e. the memory segment with the executable code). The problem is that for Darwin on arm64, Apple locked it down tight. `mprotect`, `mmap`, and their Darwin cousins (`mach_vm_protect`, `mach_vm_allocate`, and `mach_vm_remap`) block every attempt to get read-write access to the text segment. I tried a lot of things, but they all failed, so I eventually abandoned modifying the text segment itself (**UPDATE:** _[there was a way, I just didn't know about it][12]_).
 
 Apple did leave one door open for self-modifying code: the `MAP_JIT` flag to `mmap`. When combined with the non-standard function `pthread_jit_write_protect_np`, a thread can swap between read-execute and read-write permissions to `MAP_JIT` memory. It's not much to work with, because our text segment isn't allocated with `MAP_JIT` and we can't remap it. To use it, we have to allocate a new text segment.
 
@@ -220,7 +220,7 @@ With that in place, our duplicated functions can use static data.
 
 The last major problem with our duplicated text segment only happens when there's a `panic`. If our test function were instead:
 
-```
+```Go
 var divisor int = 0
 
 func testFunc(x int) int {
