@@ -1,6 +1,6 @@
 ---
 date: 2026-03-23T00:00:00-04:00
-lastmod: 2026-03-26T17:27:00-04:00
+lastmod: 2026-03-28T15:25:00-04:00
 draft: false
 title: Redefining Go Functions on Mac OS
 type: post
