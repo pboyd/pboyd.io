@@ -4,11 +4,11 @@ draft: false
 title: "Redefining Go Functions on Mac OS: The Easy Way"
 type: post
 ---
-Two days after [my last post][1] on monkey patching Go functions for Darwin/arm64, I found a better way to do it. One day, I hope to learn these things before spending weeks heading in the wrong direction. But alas, not today.
+Two days after [my last post][1] on monkey patching Go functions for Darwin/arm64, I found a better approach. One day I hope to learn these things before spending weeks heading in the wrong direction&mdash;but not today.
 
-The problem is simply getting write access to the program's text segment (the memory containing the machine code). In the [first post][2] of this saga, I only needed to call `mprotect`. I couldn't find much information on an equivalent for Darwin. While I did experiment, and spent a while near the ultimate solution, I didn't find it. Instead, I dove headlong into Go's plumbing and piled one hacky solution on top of another until it worked. Good times, but not good code.
+The central problem is getting write access to the program's text segment (the memory containing the machine code). In the [first post][2] of this saga, I only needed to call `mprotect`. I found little information on a Darwin equivalent, so I experimented. In hindsight, I was close to the solution but missed it. Instead, I dove into Go's plumbing and piled one hacky solution on top of another until it worked. Good times, but not good code.
 
-With this version, the plan is to clone the text segment into a new read-write allocation, then use `mach_vm_remap` to replace the original text segment with a read-execute mapping of the same physical memory. If our program's memory normally looks like this:
+This version clones the text segment into a new read-write allocation, then uses `mach_vm_remap` to replace the original text segment with a read-execute mapping of the same physical memory. If our program's memory normally looks like this:
 
 {{< autoimg
     src="mem-before.svg"
@@ -22,11 +22,11 @@ We want to turn it into this:
     link="mem-after.svg"
     alt="Memory layout after" >}}
 
-So we have separate virtual memory allocations for writing and executing, but both point to the same physical memory.
+Both virtual memory allocations share the same physical memory&mdash;one for writing, one for executing.
 
 ## Duplicating the code
 
-The first step is the same as in the complicated version. We need start and end addresses of the text segment, which we can get from Go's internal `moduledata` through `linkname`:
+Like the earlier version, we start by getting the text segment's start and end addresses from Go's internal `moduledata` via `linkname`:
 
 ```go
 //go:linkname lastmoduledatap runtime.lastmoduledatap
@@ -79,9 +79,9 @@ func getWritableText() (uintptr, error) {
 }
 ```
 
-This is where I went wrong before. Apple will not permit `PROT_WRITE` and `PROT_EXEC` in the same mapping unless there's a `MAP_JIT` flag, so I asked `mmap` for a read-write-execute mapping and added `MAP_JIT`. That worked. But `MAP_JIT` regions have extra limitations which prevent the remap.
+This is where I went wrong before. Apple will not permit `PROT_WRITE` and `PROT_EXEC` in the same mapping unless there's a `MAP_JIT` flag, so I added `MAP_JIT`. That worked, but I was unable to use a `MAP_JIT` mapping to replace the original text segment.
 
-Now that we have a copy of the text segment, we need to replace the original one. Apple provides `mach_vm_remap` for that, which we'll need to call through cgo. I've yet to find docs for `mach_vm_remap`. Apple's [apparently official docs][3] only list the arguments, and there's an [old page on mit.edu][5] for a similar function called `vm_remap`. The rest I've had to piece together from the C header files. Here's a Go wrapper for `mach_vm_remap`:
+Now that we have a copy of the text segment, we need to replace the original. Apple provides the criminally under-documented `mach_vm_remap` for the purpose. Apple's [official docs][3] acknowledge its existence and list the arguments&mdash;nothing more. The best documentation I've found is an [old page on mit.edu][5], but it only documents a similar function called `vm_remap`. Perhaps if I were a real Apple dev, I'd know where to look. Instead, I've pieced together what I could find with details from the C header files for this cgo wrapper:
 
 ```Go
 /*
@@ -139,11 +139,11 @@ We use the wrapper like this:
 	}
 ```
 
-We call `mach_vm_remap` with a specific address and `VM_FLAGS_FIXED` and `VM_FLAGS_OVERWRITE` so that it will replace the existing text mapping. The 8th argument, `copy`, is `0`, indicating that we don't want to copy the contents, but remap the physical pages.
+We call `mach_vm_remap` with a specific address and `VM_FLAGS_FIXED|VM_FLAGS_OVERWRITE` to replace the existing text mapping. The 8th argument, `copy`, is `0`, indicating we want to remap the physical pages, not copy them.
 
-The new mapping inherits the protections from the source page, so we need `mprotect` to mark it read-execute first. Otherwise, we lose access to execute anything in the program, including the code to handle the `SIGBUS` signal this generates. When your `SIGBUS` handler itself generates `SIGBUS`, you've got real problems.
+The new mapping inherits the protections from the source page, so we need `mprotect` to mark it read-execute first. Otherwise, we can't execute anything in the program, including the code to handle the `SIGBUS` signal this generates. When your `SIGBUS` handler itself generates `SIGBUS`, you've got real problems.
 
-The final step is to revert the prior `mprotect` call on the copy:
+The final step is to revert the `mprotect` call on the copy:
 
 ```Go
 	err = unix.Mprotect(dest, unix.PROT_READ|unix.PROT_WRITE)
@@ -152,11 +152,11 @@ The final step is to revert the prior `mprotect` call on the copy:
 	}
 ```
 
-Now we have separate virtual address ranges for writing and executing, but the underlying physical memory is the same.
+Now we have separate virtual address ranges for writing and executing, with the same underlying physical memory.
 
 ## Patching functions
 
-Inserting the `B` instruction in the function is nearly unchanged from the [Linux version][6] of this program:
+Inserting the `B` instruction is nearly unchanged from the [Linux version][6]:
 
 ```Go
 	addr := reflect.ValueOf(fn).Pointer()
@@ -175,13 +175,13 @@ Inserting the `B` instruction in the function is nearly unchanged from the [Linu
 	cacheflush(buf)
 ```
 
-The only difference is that instead of writing to the address of the function as the Go runtime knows it, we write to the address offset by the distance to the writable copy:
+The difference is that instead of writing to the address the Go runtime knows, we write to that address offset by the distance to the writable copy:
 
 ```
 writeOffset = uintptr(newText) - text
 ```
 
-The full source code is on GitHub: [redefine-mac-poc][7]. And these changes are incorporated into [github.com/pboyd/redefine][8].
+The full source is on GitHub: [redefine-mac-poc][7]. These changes are also in [github.com/pboyd/redefine][8].
 
 [1]: /posts/redefining-go-functions-on-mac-os/
 [2]: /posts/redefining-go-functions/
