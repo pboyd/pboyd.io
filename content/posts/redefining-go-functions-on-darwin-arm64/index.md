@@ -55,7 +55,7 @@ This post walks through a proof-of-concept implementation for redefining Go func
 
 ## How Apple broke `mprotect`
 
-On other platforms, we only need to call `mprotect` for read-write-execute permissions on the program's text segment (i.e. the memory segment with the executable code). The problem is that for Darwin on arm64, Apple locked it down tight. `mprotect`, `mmap`, and their Darwin cousins (`mach_vm_protect`, `mach_vm_allocate`, and `mach_vm_remap`) block every attempt to get read-write access to the text segment. I tried a lot of things, but they all failed, so I eventually abandoned modifying the text segment itself (_*UPDATE*: [there is indeed a way][12]).
+On other platforms, we only need to call `mprotect` for read-write-execute permissions on the program's text segment (i.e. the memory segment with the executable code). The problem is that for Darwin on arm64, Apple locked it down tight. `mprotect`, `mmap`, and their Darwin cousins (`mach_vm_protect`, `mach_vm_allocate`, and `mach_vm_remap`) block every attempt to get read-write access to the text segment. I tried a lot of things, but they all failed, so I eventually abandoned modifying the text segment itself (_*UPDATE*: [there is indeed a way][12]_).
 
 Apple did leave one door open for self-modifying code: the `MAP_JIT` flag to `mmap`. When combined with the non-standard function `pthread_jit_write_protect_np`, a thread can swap between read-execute and read-write permissions to `MAP_JIT` memory. It's not much to work with, because our text segment isn't allocated with `MAP_JIT` and we can't remap it. To use it, we have to allocate a new text segment.
 

@@ -19,11 +19,8 @@ main time {
 }
 
 pre {
-  background: #eee;
-}
-
-code {
-  background: #eee;
+  color: #e6edf3;
+  background: #0d1117;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -45,14 +42,6 @@ code {
 
     main time {
       color: #bebebe;
-    }
-
-    pre {
-      background: #3c5372;
-    }
-
-    code {
-      background: #3c5372;
     }
 
     figure.light {
