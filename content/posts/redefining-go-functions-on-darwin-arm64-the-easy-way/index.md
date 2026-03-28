@@ -4,7 +4,7 @@ draft: false
 title: "Redefining Go Functions on Mac OS: The Easy Way"
 type: post
 ---
-[My last post][1] showed an amazingly complicated way to monkey patch Go functions on Darwin/arm64. The problem I was trying to solve is getting write access to the program's text segment (the memory containing the machine code). In the [first post][2] of this saga, I only needed to call `mprotect`. But, on Apple silicon, `mprotect` alone is insufficient to make the text segment writable. I tried some simple approaches, but overlooked the solution below and instead dove into Go's internals, piling one hacky solution on top of another until it worked. Good times, but not good code.
+[My last post][1] showed a complicated way to monkey patch Go functions on Darwin/arm64. The problem I was trying to solve is getting write access to the program's text segment (the memory containing the machine code). In the [first post][2] of this saga, I only needed to call `mprotect`. But, on Apple silicon, `mprotect` alone is insufficient to make the text segment writable. I tried some simple approaches, but overlooked the solution below and instead dove into Go's internals, piling one hacky solution on top of another until it worked. Good times, but not good code.
 
 This version clones the text segment into a new read-write allocation, then uses `mach_vm_remap` to replace the original text segment with a read-execute mapping of the same physical memory. If our program's memory normally looks like this:
 
@@ -57,7 +57,7 @@ type moduledata struct {
 ```
 [source][4]
 
-All we need from `lastmoduledatap` is the `text` and `etext` addresses, which we use to clone the text segment:
+All we need from `lastmoduledatap` is the `text` and `etext` addresses:
 
 ```Go
 var pageSize = uintptr(syscall.Getpagesize())
@@ -85,7 +85,7 @@ func getWritableText() (uintptr, error) {
 }
 ```
 
-Now that we have a copy of the text segment, we need to replace the original. Apple provides the under-documented `mach_vm_remap` for this. Apple's [official docs][3] acknowledge its existence and list the arguments&mdash;nothing more. A real Apple dev might know where to look, but I've pieced together what documentation I could find with details from the C header files for this cgo wrapper:
+Now that we have a copy of the text segment, we need to replace the original. Apple provides `mach_vm_remap` for this. Apple's [official docs][3] acknowledge its existence and list the arguments&mdash;nothing more. A real Apple dev might know where to look, but I've pieced together what documentation I could find with details from the C header files for this cgo wrapper:
 
 ```Go
 /*
@@ -150,7 +150,7 @@ We use the wrapper like this:
 
 We call `mach_vm_remap` with a specific address and `VM_FLAGS_FIXED|VM_FLAGS_OVERWRITE` to replace the existing text mapping. The 8th argument, `copy`, is `0`, indicating we want to remap the physical pages, not copy them.
 
-It's odd to call `mprotect` to get read-execute permissions only to revert it a moment later, but skipping this step would be a catastrophe: the text segment wouldn't be executable, and consequently the next instruction triggers `SIGBUS`. Normally, the Go runtime panics on `SIGBUS`, but when the handler itself triggers `SIGBUS` the program is instead stuck in a busy loop. To make it even worse, the `SIGINT` and `SIGTERM` handlers are affected in the same way. `SIGKILL` is the only way out. New mappings inherit the protection setting from the source, so the first `mprotect` ensures that the text segment is always executable, and the second `mprotect` call restores write access.
+It's odd to call `mprotect` to get read-execute permissions only to immediately revert it, but skipping this step would be a catastrophe: the text segment wouldn't be executable, and consequently the next instruction triggers `SIGBUS`. Normally, the Go runtime panics on `SIGBUS`, but when the handler itself triggers `SIGBUS` the program is instead stuck in a busy loop. To make it even worse, the `SIGINT` and `SIGTERM` handlers are affected in the same way. `SIGKILL` is the only way out. New mappings inherit the protection setting from the source, so the first `mprotect` ensures that the text segment is always executable, and the second `mprotect` call restores write access.
 
 Now we have separate virtual address ranges for writing and executing, with the same underlying physical memory. We know the distance between the two, so for any executable address we can find the writable equivalent.
 
@@ -199,7 +199,7 @@ The difference is that instead of writing to the address the Go runtime knows, w
 
 The full source is on GitHub: [redefine-mac-poc][7]. These changes are also in [github.com/pboyd/redefine][8].
 
-All the caveats from the first post apply for this version too: patching functions this way will cause bugs. I'm also unsure what to do with this information now that I know it. One day, perhaps, I'll stumble a practical use for it, but until then, I'm filing it under "weird programming tricks".
+All the caveats from the first post apply for this version too: patching functions this way will cause bugs. I don't know what to do with this technique. One day, perhaps, I'll stumble upon a practical use for it, but until then, I'm filing it under "weird programming tricks".
 
 [1]: /posts/redefining-go-functions-on-mac-os/
 [2]: /posts/redefining-go-functions/
