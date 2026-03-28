@@ -4,9 +4,9 @@ draft: false
 title: "Redefining Go Functions on Mac OS: The Easy Way"
 type: post
 ---
-Two days after [my last post][1] on monkey patching Go functions for Darwin/arm64, I found a better approach. One day I hope to learn these things before spending weeks heading in the wrong direction&mdash;but not today.
+Two days after [my last post][1] on monkey patching Go functions for Darwin/arm64, I found a better approach. One day I hope to learn these things before spending weeks heading in the wrong direction.
 
-The central problem is getting write access to the program's text segment (the memory containing the machine code). In the [first post][2] of this saga, I only needed to call `mprotect`. I found little information on a Darwin equivalent, so I experimented. In hindsight, I was close to the solution but missed it. Instead, I dove into Go's plumbing and piled one hacky solution on top of another until it worked. Good times, but not good code.
+The central problem is getting write access to the program's text segment (the memory containing the machine code). In the [first post][2] of this saga, I only needed to call `mprotect`. As I found no Darwin equivalent, I dove into Go's plumbing. I piled one hacky solution on top of another until it worked. Good times, but not good code.
 
 This version clones the text segment into a new read-write allocation, then uses `mach_vm_remap` to replace the original text segment with a read-execute mapping of the same physical memory. If our program's memory normally looks like this:
 
@@ -79,9 +79,9 @@ func getWritableText() (uintptr, error) {
 }
 ```
 
-This is where I went wrong before. Apple will not permit `PROT_WRITE` and `PROT_EXEC` in the same mapping unless there's a `MAP_JIT` flag, so I added `MAP_JIT`. That worked, but I was unable to use a `MAP_JIT` mapping to replace the original text segment.
+I went wrong here: Apple will not permit `PROT_WRITE` and `PROT_EXEC` in the same mapping unless there's a `MAP_JIT` flag. Adding `MAP_JIT` fixed the `mmap` call, only to fail later at the remap step.
 
-Now that we have a copy of the text segment, we need to replace the original. Apple provides the criminally under-documented `mach_vm_remap` for the purpose. Apple's [official docs][3] acknowledge its existence and list the arguments&mdash;nothing more. The best documentation I've found is an [old page on mit.edu][5], but it only documents a similar function called `vm_remap`. Perhaps if I were a real Apple dev, I'd know where to look. Instead, I've pieced together what I could find with details from the C header files for this cgo wrapper:
+Now that we have a copy of the text segment, we need to replace the original. Apple provides the under-documented `mach_vm_remap` for this. Apple's [official docs][3] acknowledge its existence and list the arguments&mdash;nothing more. A real Apple dev might know where to look, but I've pieced together what documentation I could find with details from the C header files for this cgo wrapper:
 
 ```Go
 /*
@@ -141,7 +141,7 @@ We use the wrapper like this:
 
 We call `mach_vm_remap` with a specific address and `VM_FLAGS_FIXED|VM_FLAGS_OVERWRITE` to replace the existing text mapping. The 8th argument, `copy`, is `0`, indicating we want to remap the physical pages, not copy them.
 
-The new mapping inherits the protections from the source page, so we need `mprotect` to mark it read-execute first. Otherwise, we can't execute anything in the program, including the code to handle the `SIGBUS` signal this generates. When your `SIGBUS` handler itself generates `SIGBUS`, you've got real problems.
+The new mapping inherits the protections from the source page, therefore we need `mprotect` to mark it read-execute first. Skipping this step is a catastrophe: the text segment won't be executable, and consequently the next instruction triggers `SIGBUS`. Normally, the Go runtime panics on `SIGBUS`, but when the handler itself triggers `SIGBUS` the program is instead stuck in a busy loop.
 
 The final step is to revert the `mprotect` call on the copy:
 
