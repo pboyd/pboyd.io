@@ -23,6 +23,14 @@ pre {
   background: #0d1117;
 }
 
+pre code, h2 code, a code {
+    background: none;
+}
+
+code {
+  background: #eae4dd;
+}
+
 @media (prefers-color-scheme: dark) {
     html {
       background-color: #192330;
@@ -42,6 +50,10 @@ pre {
 
     main time {
       color: #bebebe;
+    }
+
+    code {
+      background: #293340;
     }
 
     figure.light {
