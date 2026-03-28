@@ -6,7 +6,7 @@ type: post
 ---
 Two days after [my last post][1] on monkey patching Go functions for Darwin/arm64, I found a better approach. One day I hope to learn these things before spending weeks heading in the wrong direction.
 
-The central problem is getting write access to the program's text segment (the memory containing the machine code). In the [first post][2] of this saga, I only needed to call `mprotect`. As I found no Darwin equivalent, I dove into Go's plumbing. I piled one hacky solution on top of another until it worked. Good times, but not good code.
+The central problem is getting write access to the program's text segment (the memory containing the machine code). In the [first post][2] of this saga, I only needed to call `mprotect`. On Apple silicon, `mprotect` alone is insufficient to make the text segment writable. I overlooked the solution and instead dove into Go's internals, piling one hacky solution on top of another until it worked. Good times, but not good code.
 
 This version clones the text segment into a new read-write allocation, then uses `mach_vm_remap` to replace the original text segment with a read-execute mapping of the same physical memory. If our program's memory normally looks like this:
 
@@ -33,9 +33,17 @@ Like the earlier version, we start by getting the text segment's start and end a
 var lastmoduledatap *moduledata
 
 type moduledata struct {
-	// [snip]
+	pcHeader     *pcHeader
+	funcnametab  []byte
+	cutab        []uint32
+	filetab      []byte
+	pctab        []byte
+	pclntable    []byte
+	ftab         []functab
+	findfunctab  uintptr
+	minpc, maxpc uintptr
 
-	text, etext           uintptr
+	text, etext           uintptr // <- The only fields we need
 	noptrdata, enoptrdata uintptr
 	data, edata           uintptr
 	bss, ebss             uintptr
@@ -44,9 +52,9 @@ type moduledata struct {
 	end, gcdata, gcbss    uintptr
 	types, etypes         uintptr
 	rodata                uintptr
-	gofunc                uintptr // go.func.*
+	gofunc                uintptr
 
-    // struct continues, just get the beginning
+	// The struct continues, but we only need the beginning
 }
 ```
 [source][4]
