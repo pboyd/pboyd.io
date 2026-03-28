@@ -201,7 +201,7 @@ The full source is on GitHub: [redefine-mac-poc][7]. These changes are also in [
 
 All the caveats from the first post apply for this version too: patching functions this way will cause bugs. I don't know what to do with this technique. One day, perhaps, I'll stumble upon a practical use for it, but until then, I'm filing it under "weird programming tricks".
 
-[1]: /posts/redefining-go-functions-on-mac-os/
+[1]: /posts/redefining-go-functions-on-darwin-arm64/
 [2]: /posts/redefining-go-functions/
 [3]: https://developer.apple.com/documentation/kernel/1402218-mach_vm_remap
 [4]: https://github.com/pboyd/redefine-macos-poc/blob/main/moddata.go
