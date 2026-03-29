@@ -18,5 +18,5 @@ I write all the text and always will. However, I do use AI in the following ways
 
 - **Proofreading** &mdash; On older articles, I used Grammarly to find grammatical errors and simplify the text. I currently use Claude Code in the same way ([elements-of-style](https://github.com/obra/the-elements-of-style/)!).
 - **Generating code** &mdash; I sometimes use AI to generate code examples or to build projects I write about.
-- **Generating artwork** &mdash; I'm a terrible artist. If it's not a diagram, a photograph, or badly cobbled together clip-art, it's AI-generated. I'll note this in the image caption.
+- **Generating artwork** &mdash; I'm a terrible artist. If it's not a diagram, a photograph, or badly cobbled together clip-art, it's AI-generated. I'll note this on the page.
 - **Other** &mdash; Researching, brainstorming, and generating the non-content parts of the site (templates, deployment scripts, etc.)

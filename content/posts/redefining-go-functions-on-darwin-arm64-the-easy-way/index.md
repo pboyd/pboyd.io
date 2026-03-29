@@ -6,7 +6,7 @@ type: post
 ---
 [My last post][1] showed a complicated way to monkey patch Go functions on Darwin/arm64. The problem I was trying to solve is getting write access to the program's text segment (the memory containing the machine code). In the [first post][2] of this saga, I only needed to call `mprotect`. But, on Apple silicon, `mprotect` alone is insufficient to make the text segment writable. I tried some simple approaches, but overlooked the solution below and instead dove into Go's internals, piling one hacky solution on top of another until it worked. Good times, but not good code.
 
-This version clones the text segment into a new read-write allocation, then uses `mach_vm_remap` to replace the original text segment with a read-execute mapping of the same physical memory. If our program's memory normally looks like this:
+This version clones the text segment into a new read-write allocation, then uses `mach_vm_remap` to replace the original text segment with a read-execute mapping of the same physical memory. If our program's memory normally looks like this[^1]:
 
 {{< autoimg
     src="mem-before.svg"
@@ -200,6 +200,8 @@ The difference is that instead of writing to the address the Go runtime knows, w
 The full source is on GitHub: [redefine-mac-poc][7]. These changes are also in [github.com/pboyd/redefine][8].
 
 All the caveats from the first post apply for this version too: patching functions this way will cause bugs. I don't know what to do with this technique. One day, perhaps, I'll stumble upon a practical use for it, but until then, I'm filing it under "weird programming tricks".
+
+[^1]: Claude Code converted my ASCII art diagrams into these nicer looking SVGs.
 
 [1]: /posts/redefining-go-functions-on-darwin-arm64/
 [2]: /posts/redefining-go-functions/
