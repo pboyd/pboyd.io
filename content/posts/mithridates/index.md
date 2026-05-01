@@ -5,11 +5,6 @@ title: Project Mithridates Preview
 type: post
 ---
 
-{{< autoimg
-    src="screenshot.jpg"
-    alt="Project Mithridates screenshot, blurred"
-    caption="Screenshot of Project Mithridates, blurred for your protection." >}}
-
 Today, I'm announcing my new video game, Project Mithridates. Unfortunately, I'm unable to release it. Even providing more details would be dangerous.
 
 As I was wrapping up development, I recruited a few people on social media for playtesting. Each tester sent an initial positive report, and then nothing. I sent emails, I messaged them on the sites I recruited them from. Radio silence. Was it that bad? Were they all busy? I couldn't figure it out. But I needed the feedback, so I sent the game to a local friend&mdash;let's call him Steve&mdash;mostly because I knew I could bug him until he told me what he thought.
