@@ -1,7 +1,5 @@
 ---
 title: "At this company, we are family"
-subtitle: "And what a family we are"
-description: "At this company, we are family. And what a family we are."
 type: post
 date: 2023-05-25T00:00:00Z
 lastmod: 2023-07-01
