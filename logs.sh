@@ -132,7 +132,7 @@ top_posts() {
     fi
 
     local paths
-    paths=$(gzip -dc "$LOGS_DIR"/*.gz | awk '$8 ~ /^\/posts\/[^\/]+\/?$/ {print $8}' | sort | uniq -c | sort -rn | head -n "$num" | awk '{print $2}')
+    paths=$(gzip -dc "$LOGS_DIR"/*.gz | grep -v '\.xml' | awk '$8 ~ /^\/posts\/[^\/]+\/$/ {print $8}' | sort | uniq -c | sort -rn | head -n "$num" | awk '{print $2}')
 
     output=layouts/_partials/top-$num.html
     echo "Writing output to $output"
