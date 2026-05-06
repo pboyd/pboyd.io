@@ -62,6 +62,10 @@ code {
     figure.dark {
         display: block !important;
     }
+
+    article > footer {
+      border-top-color: #3a4250;
+    }
 }
 
 body {
@@ -181,10 +185,18 @@ main .footnotes p {
     font-size: smaller;
 }
 
-footer {
-  font-size: small;
+article > footer {
   border-top: 1px solid #ddd;
-  padding: 10px;
+  margin-top: 2em;
+  padding-top: 1em;
+}
+
+article > footer > :first-child {
+  margin-top: 0;
+}
+
+article > footer .label {
+  color: #aaa;
 }
 
 ul#tags {

@@ -9,6 +9,15 @@
 
   {{ .Content }}
   {{ partial "terms.html" (dict "taxonomy" "tags" "page" .) }}
-  <a href="https://github.com/pboyd/pboyd.io/tree/main/content/{{ .File.Path }}">Source</a> / <a href="https://github.com/pboyd/pboyd.io/commits/main/content/{{ .File.Path }}">History</a>
+  <footer>
+    {{- with .Params.discussions }}
+    <p><span class="label">Discussions:</span>
+      {{- range $i, $d := . }}
+        {{- if $i }} ·{{ end }} <a href="{{ $d.url }}">{{ $d.site }}</a>
+      {{- end }}
+    </p>
+    {{- end }}
+    <a href="https://github.com/pboyd/pboyd.io/tree/main/content/{{ .File.Path }}">Source</a> / <a href="https://github.com/pboyd/pboyd.io/commits/main/content/{{ .File.Path }}">History</a>
+  </footer>
   </article>
 {{ end }}

@@ -10,7 +10,7 @@ discussions:
 - url: https://www.reddit.com/r/golang/comments/1586ezi/go_concurrency_fanout_fanin/
   site: /r/golang
 - url: https://lobste.rs/s/rr73pz/go_concurrency_fan_out_fan
-  site: Lobste.rs
+  site: lobste.rs
 ---
 {{< autoimg
     src="flowerbed.jpg"

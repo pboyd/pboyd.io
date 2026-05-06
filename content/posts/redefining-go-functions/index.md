@@ -3,6 +3,11 @@ date: 2026-02-10
 draft: false
 title: Redefining Go Functions
 type: post
+discussions:
+- url: https://news.ycombinator.com/item?id=46960118
+  site: Hacker News
+- url: https://pboyd.io/posts/redefining-go-functions/
+  site: lobste.rs
 ---
 I once wrote a [Perl subroutine][1] that would [memoize][7] the subroutine that
 called it. That much was useful, but then it inserted a copy of itself into the

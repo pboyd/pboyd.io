@@ -5,6 +5,9 @@ draft: false
 title: Project Mithridates Preview
 subtitle: Preparing for the next generation of frontier games
 type: post
+discussions:
+- url: https://lobste.rs/s/s99bls
+  site: lobste.rs
 ---
 
 Today, I'm announcing the Project Mithridates Preview program to provide early access to my new video game, Project Mithridates. I would love to tell you all about the game&mdash;unfortunately, even describing it would be dangerous. Let me explain.
