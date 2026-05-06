@@ -94,7 +94,7 @@ main h1 {
   font-style: normal;
   font-weight: 600;
   line-height: 1;
-  text-align: center;
+  text-align: left;
   padding: 10px 0;
 }
 
@@ -106,7 +106,7 @@ h2.subtitle {
   font-size: large;
   font-style: italic;
   font-weight: 400;
-  text-align: center;
+  text-align: left;
   margin-top: 0;
 }
 
@@ -165,7 +165,7 @@ article time {
   font-size: smaller;
   margin-bottom: 10px;
   display: block;
-  text-align: center;
+  text-align: right;
 }
 
 article p {
