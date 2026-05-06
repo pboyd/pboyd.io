@@ -16,8 +16,6 @@ discussions:
   site: /r/programming (again)
 ---
 
-{{< autoimg src="code.png" alt="[,-.]" >}}
-
 I stumbled on this regex recently: `\d{2}[,-.]\d{2}`.
 
 The intention is clear enough: match two sets of two digits separated by a comma, a dash, or a period. Of course, it shouldn't work. Dashes in character classes are special because they're used for ranges (like `[a-z]` to match lower-case ASCII letters). If you want `-` in a character class you put it at the beginning, or the end, never the middle. So this should be `[-,.]` not `[,-.]`.
