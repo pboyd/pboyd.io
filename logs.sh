@@ -107,7 +107,7 @@ raw_logs() {
 }
 
 view_logs() {
-    raw_logs "$@" | goaccess - --log-format CLOUDFRONT --http-protocol no
+    raw_logs "$@" | awk '$9 != "301"' | goaccess - --log-format CLOUDFRONT --http-protocol no
 }
 
 top_posts() {
@@ -132,7 +132,7 @@ top_posts() {
     fi
 
     local paths
-    paths=$(gzip -dc "$LOGS_DIR"/*.gz | grep -v '\.xml' | awk '$8 ~ /^\/posts\/[^\/]+\/$/ {print $8}' | sort | uniq -c | sort -rn | head -n "$num" | awk '{print $2}')
+    paths=$(gzip -dc "$LOGS_DIR"/*.gz | awk '$9 == "200"' | awk '$8 ~ /^\/posts\/[^\/]+\/?$/ {gsub(/\/$/, "", $8); print $8}' | grep -Ev '.xml$' | sort | uniq -c | sort -rn | head -n "$num" | awk '{print $2}')
 
     output=layouts/_partials/top-$num.html
     echo "Writing output to $output"
@@ -140,7 +140,7 @@ top_posts() {
     (
         echo "<ul class=\"post-list\">"
         for path in $paths; do
-            echo "  {{ with site.GetPage \"$path\" }}"
+            echo "  {{ with site.GetPage \"$path/\" }}"
             echo "    <li>"
             echo "      {{ \$dateMachine := .Date | time.Format \"2006-01-02T15:04:05-07:00\" }}"
             echo "      {{ \$dateDisplay := .Date | time.Format \"2006-01-02\"}}"
