@@ -13,7 +13,7 @@
       <time datetime="{{ $dateMachine }}">{{ $dateDisplay }}</time><a class="title" href="{{ .Permalink }}">{{ .Title }}</a>
     </li>
   {{ end }}
-  {{ with site.GetPage "/posts/mithridates/" }}
+  {{ with site.GetPage "/posts/redefining-go-functions-on-darwin-arm64-the-easy-way/" }}
     <li>
       {{ $dateMachine := .Date | time.Format "2006-01-02T15:04:05-07:00" }}
       {{ $dateDisplay := .Date | time.Format "2006-01-02"}}
@@ -27,7 +27,7 @@
       <time datetime="{{ $dateMachine }}">{{ $dateDisplay }}</time><a class="title" href="{{ .Permalink }}">{{ .Title }}</a>
     </li>
   {{ end }}
-  {{ with site.GetPage "/posts/how-to-walk-safely-near-buses/" }}
+  {{ with site.GetPage "/posts/mithridates/" }}
     <li>
       {{ $dateMachine := .Date | time.Format "2006-01-02T15:04:05-07:00" }}
       {{ $dateDisplay := .Date | time.Format "2006-01-02"}}
